@@ -1,9 +1,15 @@
+
+"use client";
+
+import { useEffect, useState } from 'react';
 import { AccountSummaryCard } from "@/components/dashboard/account-summary-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { DollarSign, CreditCard as CreditCardIcon, Briefcase, TrendingUp, ArrowRightLeft, Send, FileText, Settings } from "lucide-react";
+import { DollarSign, CreditCard as CreditCardIcon, Briefcase, TrendingUp, ArrowRightLeft, Send, FileText, Settings, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { TransactionHistory } from "@/components/dashboard/transaction-history";
+import { auth } from '@/lib/firebase/clientApp'; // Import Firebase auth instance
+import { onAuthStateChanged, User } from 'firebase/auth';
 
 // Mock data
 const accounts = [
@@ -21,10 +27,39 @@ const quickActions = [
 ];
 
 export default function DashboardOverviewPage() {
+  const [userName, setUserName] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user: User | null) => {
+      if (user) {
+        const displayName = user.displayName;
+        if (displayName) {
+          setUserName(displayName.split(' ')[0]); // Get the first name
+        } else {
+          setUserName("User"); // Fallback if displayName is not set
+        }
+      } else {
+        setUserName("User"); // Fallback if no user
+      }
+      setIsLoading(false);
+    });
+
+    return () => unsubscribe(); // Cleanup subscription on unmount
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="flex h-[calc(100vh-4rem)] items-center justify-center">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-semibold text-foreground mb-1">Welcome Back, User!</h2>
+        <h2 className="text-2xl font-semibold text-foreground mb-1">Welcome Back, {userName || "User"}!</h2>
         <p className="text-muted-foreground">Here&apos;s a quick overview of your finances.</p>
       </div>
 
