@@ -5,19 +5,107 @@ import { useEffect, useState } from 'react';
 import { AccountSummaryCard } from "@/components/dashboard/account-summary-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { DollarSign, CreditCard as CreditCardIcon, Briefcase, TrendingUp, ArrowRightLeft, Send, FileText, Settings, Loader2 } from "lucide-react";
+import { DollarSign, CreditCard as CreditCardIconLucide, Briefcase, TrendingUp, ArrowRightLeft, Send, FileText, Settings, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { TransactionHistory } from "@/components/dashboard/transaction-history";
-import { auth } from '@/lib/firebase/clientApp'; // Import Firebase auth instance
+import { auth } from '@/lib/firebase/clientApp';
 import { onAuthStateChanged, User } from 'firebase/auth';
+import type { AccountDetail, CheckingAccountDetails, SavingsAccountDetails, InvestmentAccountDetails, CreditCardAccountDetails } from "@/types/accounts";
+import { AccountDetailsModal } from "@/components/dashboard/account-details-modal";
+import { addDays, subDays, formatISO } from 'date-fns';
 
-// Mock data
-const accounts = [
-  { accountType: "Checking Account", balance: 5250.75, accountNumberSuffix: "1234", icon: DollarSign, detailsLink: "/dashboard/accounts/checking" },
-  { accountType: "Savings Account", balance: 12870.20, accountNumberSuffix: "5678", icon: Briefcase, detailsLink: "/dashboard/accounts/savings" },
-  { accountType: "Investment Portfolio", balance: 75300.50, accountNumberSuffix: "9012", icon: TrendingUp, detailsLink: "/dashboard/accounts/investments" },
-  { accountType: "Primary Credit Card", balance: -850.00, accountNumberSuffix: "3456", icon: CreditCardIcon, detailsLink: "/dashboard/cards/primary" },
+// Enhanced Mock Data
+const mockAccounts: AccountDetail[] = [
+  {
+    id: "checking123",
+    userId: "userTest1",
+    accountName: "Primary Checking",
+    accountType: "checking",
+    accountNumberSuffix: "1234",
+    balance: 5250.75,
+    availableBalance: 5200.50,
+    currency: "USD",
+    status: "active",
+    dateOpened: formatISO(subDays(new Date(), 365)),
+    icon: DollarSign,
+    overdraftProtectionEnabled: true,
+    linkedDebitCardNumberSuffix: "7890",
+    last5Transactions: [
+      { id: "ctxn1", date: formatISO(subDays(new Date(), 1)), description: "Paycheck Deposit", amount: 2200.00, type: "credit" },
+      { id: "ctxn2", date: formatISO(subDays(new Date(), 2)), description: "Rent Payment", amount: -1500.00, type: "debit" },
+      { id: "ctxn3", date: formatISO(subDays(new Date(), 3)), description: "Groceries", amount: -85.20, type: "debit" },
+      { id: "ctxn4", date: formatISO(subDays(new Date(), 4)), description: "Online Shopping", amount: -42.99, type: "debit" },
+      { id: "ctxn5", date: formatISO(subDays(new Date(), 5)), description: "ATM Withdrawal", amount: -100.00, type: "debit" },
+    ],
+    monthlyActivityFee: null,
+    eStatementsEnabled: true,
+  },
+  {
+    id: "savings456",
+    userId: "userTest1",
+    accountName: "High-Yield Savings",
+    accountType: "savings",
+    accountNumberSuffix: "5678",
+    balance: 12870.20,
+    currency: "USD",
+    status: "active",
+    dateOpened: formatISO(subDays(new Date(), 730)),
+    icon: Briefcase,
+    interestRate: 0.045, // 4.5%
+    apy: 0.0458, // Approx APY for 4.5% monthly compounding
+    compoundingFrequency: "monthly",
+    minimumBalanceRequired: 100.00,
+    withdrawalLimits: { countPerCycle: 6, cycleType: "month", currentCycleWithdrawals: 2 },
+    interestEarnedYTD: 250.30,
+  },
+  {
+    id: "investment789",
+    userId: "userTest1",
+    accountName: "Growth Portfolio",
+    accountType: "investment",
+    accountNumberSuffix: "9012",
+    balance: 0, // Initial deposit or less relevant, portfolioValue is key
+    portfolioValue: 75300.50,
+    totalInvestment: 65000.00,
+    totalGainLoss: 10300.50,
+    totalGainLossPercentage: (10300.50 / 65000),
+    currency: "USD",
+    status: "active",
+    dateOpened: formatISO(subDays(new Date(), 180)),
+    icon: TrendingUp,
+    holdingCount: 5,
+    majorHoldings: [
+      { id: "h1", symbol: "AAPL", name: "Apple Inc.", quantity: 50, currentValue: 9500.00, currentPrice: 190, dayChange: 2.50, dayChangePercentage: 0.013 },
+      { id: "h2", symbol: "MSFT", name: "Microsoft Corp.", quantity: 30, currentValue: 12000.00, currentPrice: 400, dayChange: -1.20, dayChangePercentage: -0.003 },
+      { id: "h3", symbol: "VOO", name: "Vanguard S&P 500 ETF", quantity: 100, currentValue: 45000.00, currentPrice: 450, dayChange: 5.00, dayChangePercentage: 0.011 },
+    ],
+    investmentStrategy: "Growth",
+    investmentRiskLevel: "moderately_aggressive",
+    dividendIncomeYTD: 350.00,
+  },
+  {
+    id: "cc101",
+    userId: "userTest1",
+    accountName: "Rewards Visa",
+    accountType: "credit_card",
+    accountNumberSuffix: "3456",
+    balance: -850.00, // Amount owed
+    creditLimit: 10000.00,
+    availableCredit: 9150.00,
+    currency: "USD",
+    status: "active",
+    dateOpened: formatISO(subDays(new Date(), 500)),
+    icon: CreditCardIconLucide,
+    currentStatementBalance: 750.00,
+    minimumPaymentDue: 35.00,
+    paymentDueDate: formatISO(addDays(new Date(), 15)),
+    interestRateAPR: { purchase: 0.1999, cashAdvance: 0.2499 },
+    rewardsBalance: { points: 12500, type: "points", description: "Travel Points" },
+    lastPaymentAmount: 100.00,
+    lastPaymentDate: formatISO(subDays(new Date(), 10)),
+  },
 ];
+
 
 const quickActions = [
   { label: "Transfer Funds", href: "/dashboard/transfer", icon: ArrowRightLeft },
@@ -29,24 +117,35 @@ const quickActions = [
 export default function DashboardOverviewPage() {
   const [userName, setUserName] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedAccount, setSelectedAccount] = useState<AccountDetail | null>(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user: User | null) => {
       if (user) {
         const displayName = user.displayName;
         if (displayName) {
-          setUserName(displayName.split(' ')[0]); // Get the first name
+          setUserName(displayName.split(' ')[0]); 
         } else {
-          setUserName("User"); // Fallback if displayName is not set
+          setUserName("User"); 
         }
       } else {
-        setUserName("User"); // Fallback if no user
+        setUserName("User"); 
       }
       setIsLoading(false);
     });
-
-    return () => unsubscribe(); // Cleanup subscription on unmount
+    return () => unsubscribe();
   }, []);
+
+  const handleViewDetails = (account: AccountDetail) => {
+    setSelectedAccount(account);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedAccount(null);
+  };
 
   if (isLoading) {
     return (
@@ -63,27 +162,21 @@ export default function DashboardOverviewPage() {
         <p className="text-muted-foreground">Here&apos;s a quick overview of your finances.</p>
       </div>
 
-      {/* Account Summaries */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        {accounts.map(acc => (
+        {mockAccounts.map(acc => (
           <AccountSummaryCard 
-            key={acc.accountType}
-            accountType={acc.accountType}
-            balance={acc.balance}
-            accountNumberSuffix={acc.accountNumberSuffix}
-            icon={acc.icon}
-            detailsLink={acc.detailsLink}
+            key={acc.id}
+            account={acc}
+            onViewDetails={handleViewDetails}
           />
         ))}
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* Recent Transactions */}
         <div className="lg:col-span-2">
           <TransactionHistory title="Recent Activity" defaultItemsToShow={5} showFilters={false} />
         </div>
 
-        {/* Quick Actions */}
         <Card className="shadow-md">
           <CardHeader>
             <CardTitle className="text-xl text-secondary">Quick Actions</CardTitle>
@@ -101,6 +194,7 @@ export default function DashboardOverviewPage() {
           </CardContent>
         </Card>
       </div>
+      <AccountDetailsModal isOpen={isModalOpen} onClose={handleCloseModal} account={selectedAccount} />
     </div>
   );
 }
