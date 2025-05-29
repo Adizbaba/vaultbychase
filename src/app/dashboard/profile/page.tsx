@@ -1,9 +1,11 @@
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Camera, Edit3 } from "lucide-react";
+import { format } from 'date-fns'; // Import date-fns
 
 export default function ProfilePage() {
   // Mock user data
@@ -36,7 +38,7 @@ export default function ProfilePage() {
             </Button>
           </div>
           <CardTitle className="text-2xl text-secondary mt-4">{user.fullName}</CardTitle>
-          <CardDescription>Member since {new Date(user.memberSince).toLocaleDateString(undefined, { year: 'numeric', month: 'long' })}</CardDescription>
+          <CardDescription>Member since {format(new Date(user.memberSince), 'MMMM yyyy')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6 pt-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -1,9 +1,12 @@
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Download, FileText, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import React from "react"; // Added React import
+import { format } from 'date-fns'; // Import date-fns
 
 // Mock data for statements
 const statements = [
@@ -48,7 +51,8 @@ export default function StatementsPage() {
                 <SelectItem value="2022">2022</SelectItem>
               </SelectContent>
             </Select>
-            <Input type="text" placeholder="Search statements..." className="md:col-span-1" icon={<Search className="h-4 w-4 text-muted-foreground" />} />
+            {/* Using InputWithIcon helper as it was defined below */}
+            <InputWithIcon type="text" placeholder="Search statements..." className="md:col-span-1" icon={<Search className="h-4 w-4 text-muted-foreground" />} />
           </div>
         </CardHeader>
         <CardContent>
@@ -66,7 +70,7 @@ export default function StatementsPage() {
                 <TableRow key={stmt.id}>
                   <TableCell className="font-medium">{stmt.accountName}</TableCell>
                   <TableCell>{stmt.period}</TableCell>
-                  <TableCell>{new Date(stmt.dateGenerated).toLocaleDateString()}</TableCell>
+                  <TableCell>{format(new Date(stmt.dateGenerated), 'MM/dd/yyyy')}</TableCell>
                   <TableCell className="text-right">
                     <Button variant="outline" size="sm" asChild>
                       <a href={stmt.link} download>
@@ -106,7 +110,7 @@ const InputWithIcon = React.forwardRef<HTMLInputElement, InputProps>(
         {icon && <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">{icon}</div>}
         <Input
           type={type}
-          className={`pl-${icon ? '10' : '3'} ${className}`}
+          className={`pl-${icon ? '10' : '3'} ${className}`} // Adjusted padding based on icon presence
           ref={ref}
           {...props}
         />
@@ -115,4 +119,3 @@ const InputWithIcon = React.forwardRef<HTMLInputElement, InputProps>(
   }
 );
 InputWithIcon.displayName = "InputWithIcon";
-

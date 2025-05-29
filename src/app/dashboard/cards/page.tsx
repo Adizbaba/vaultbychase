@@ -1,9 +1,11 @@
+
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { CreditCard as CreditCardIcon, Lock, Award, PlusCircle, TrendingUp, AlertCircle } from "lucide-react";
 import Link from "next/link";
+import { format } from 'date-fns'; // Import date-fns
 
 // Mock data for credit cards
 const userCreditCards = [
@@ -64,7 +66,7 @@ export default function CreditCardPage() {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Payment Due</p>
-              <p className="text-xl font-semibold text-secondary">{new Date(card.dueDate).toLocaleDateString()}</p>
+              <p className="text-xl font-semibold text-secondary">{format(new Date(card.dueDate), 'MM/dd/yyyy')}</p>
               <p className="text-sm text-muted-foreground">Minimum Payment: ${card.minPayment.toFixed(2)}</p>
               
               <p className="text-sm text-muted-foreground mt-4">Rewards</p>

@@ -1,8 +1,10 @@
+
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Landmark as LoanIcon, FileText, PlusCircle, CalendarDays, DollarSign } from "lucide-react";
 import Link from "next/link";
+import { format } from 'date-fns'; // Import date-fns
 
 // Mock data for loans
 const userLoans = [
@@ -75,7 +77,7 @@ export default function LoanManagementPage() {
                 <CalendarDays className="h-5 w-5 text-muted-foreground" />
                 <div>
                     <p className="text-sm text-muted-foreground">Next Payment Date</p>
-                    <p className="text-lg font-semibold text-foreground">{new Date(loan.nextPaymentDate).toLocaleDateString()}</p>
+                    <p className="text-lg font-semibold text-foreground">{format(new Date(loan.nextPaymentDate), 'MM/dd/yyyy')}</p>
                 </div>
               </div>
               <p className="text-sm text-muted-foreground mt-3">Interest Rate: {loan.interestRate.toFixed(2)}%</p>

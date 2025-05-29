@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -8,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { ArrowDown, ArrowUp, Download, Filter } from "lucide-react";
+import { format } from 'date-fns'; // Import date-fns
 
 interface Transaction {
   id: string;
@@ -117,7 +119,7 @@ export function TransactionHistory({
             {filteredTransactions.length > 0 ? (
               filteredTransactions.map((txn) => (
                 <TableRow key={txn.id}>
-                  <TableCell>{new Date(txn.date).toLocaleDateString()}</TableCell>
+                  <TableCell>{format(new Date(txn.date), 'MM/dd/yyyy')}</TableCell>
                   <TableCell className="font-medium">{txn.description}</TableCell>
                   <TableCell className={`text-right ${txn.amount > 0 ? 'text-green-600' : 'text-red-600'}`}>
                     {txn.amount > 0 ? <ArrowUp className="inline h-4 w-4 mr-1" /> : <ArrowDown className="inline h-4 w-4 mr-1" /> }

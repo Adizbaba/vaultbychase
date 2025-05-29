@@ -1,9 +1,11 @@
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CalendarPlus, ListChecks, PlusCircle, RotateCcw } from "lucide-react";
 import Link from "next/link";
+import { format } from 'date-fns'; // Import date-fns
 
 // Mock data for upcoming bills and payees
 const upcomingBills = [
@@ -53,7 +55,7 @@ export default function BillPaymentPage() {
                 <li key={bill.id} className="flex justify-between items-center p-3 border rounded-md hover:bg-muted/50">
                   <div>
                     <p className="font-medium text-foreground">{bill.payee}</p>
-                    <p className="text-sm text-muted-foreground">Due: {new Date(bill.dueDate).toLocaleDateString()}</p>
+                    <p className="text-sm text-muted-foreground">Due: {format(new Date(bill.dueDate), 'MM/dd/yyyy')}</p>
                   </div>
                   <div className="text-right">
                     <p className="font-semibold text-lg text-primary">${bill.amount.toFixed(2)}</p>
