@@ -1,8 +1,9 @@
+
 "use client";
 
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Bell, LogOut, Settings, UserCircle } from "lucide-react";
+import { Bell, LogOut, Settings, UserCircle, Loader2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,19 +14,39 @@ import {
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Logo } from "../icons/logo";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { ThemeToggleButton } from "@/components/theme-toggle-button";
+import { auth } from "@/lib/firebase/clientApp"; // Import Firebase auth
+import { signOut } from "firebase/auth"; // Import signOut
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 
 export function DashboardHeader({ pageTitle }: { pageTitle?: string }) {
   const router = useRouter();
   const pathname = usePathname();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const { toast } = useToast();
 
-  const handleLogout = () => {
-    // Implement actual logout logic here
-    console.log("User logged out");
-    router.push('/login');
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await signOut(auth);
+      toast({
+        title: "Logged Out",
+        description: "You have been successfully logged out.",
+      });
+      router.push('/login');
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast({
+        title: "Logout Failed",
+        description: "Could not log you out. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoggingOut(false);
+    }
   };
   
   // Determine the page title based on pathname if not provided
@@ -58,7 +79,7 @@ export function DashboardHeader({ pageTitle }: { pageTitle?: string }) {
         </Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+            <Button variant="ghost" className="relative h-10 w-10 rounded-full" disabled={isLoggingOut}>
               <Avatar className="h-10 w-10">
                 <AvatarImage src="https://placehold.co/100x100.png" alt="User avatar" data-ai-hint="person user" />
                 <AvatarFallback>VC</AvatarFallback>
@@ -68,22 +89,31 @@ export function DashboardHeader({ pageTitle }: { pageTitle?: string }) {
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel>My Account</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
+            <DropdownMenuItem asChild disabled={isLoggingOut}>
               <Link href="/dashboard/profile">
                 <UserCircle className="mr-2 h-4 w-4" />
                 Profile
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem asChild>
+            <DropdownMenuItem asChild disabled={isLoggingOut}>
               <Link href="/dashboard/settings">
                 <Settings className="mr-2 h-4 w-4" />
                 Settings
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive focus:bg-destructive/10">
-              <LogOut className="mr-2 h-4 w-4" />
-              Log Out
+            <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive focus:bg-destructive/10" disabled={isLoggingOut}>
+              {isLoggingOut ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Logging Out...
+                </>
+              ) : (
+                <>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Log Out
+                </>
+              )}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
