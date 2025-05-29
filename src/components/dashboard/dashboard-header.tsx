@@ -15,6 +15,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Logo } from "../icons/logo";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { ThemeToggleButton } from "@/components/theme-toggle-button";
 
 
 export function DashboardHeader({ pageTitle }: { pageTitle?: string }) {
@@ -33,6 +34,7 @@ export function DashboardHeader({ pageTitle }: { pageTitle?: string }) {
     const pathSegments = pathname.split('/').filter(Boolean);
     if (pathSegments.length > 1) {
       title = pathSegments[1].charAt(0).toUpperCase() + pathSegments[1].slice(1);
+      if (title === "Page") title = "Overview"; // Handle generic dashboard page
     } else {
       title = "Dashboard";
     }
@@ -48,7 +50,8 @@ export function DashboardHeader({ pageTitle }: { pageTitle?: string }) {
         <h1 className="text-xl font-semibold text-foreground hidden md:block">{title}</h1>
       </div>
       
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 md:gap-4">
+        <ThemeToggleButton />
         <Button variant="ghost" size="icon" className="rounded-full">
           <Bell className="h-5 w-5" />
           <span className="sr-only">Notifications</span>

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Menu, X } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
+import { ThemeToggleButton } from '@/components/theme-toggle-button';
 
 interface NavItem {
   label: string;
@@ -85,6 +86,7 @@ export function Header() {
         </nav>
 
         <div className="hidden items-center space-x-3 md:flex">
+          <ThemeToggleButton />
           <Button variant="outline" asChild>
             <Link href="/login">Login</Link>
           </Button>
@@ -93,7 +95,8 @@ export function Header() {
           </Button>
         </div>
 
-        <div className="md:hidden">
+        <div className="md:hidden flex items-center gap-2">
+          <ThemeToggleButton />
           <Button variant="ghost" size="icon" onClick={() => setIsMenuOpen(!isMenuOpen)} aria-label="Toggle menu">
             {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </Button>
