@@ -1,67 +1,77 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Activity, Users, ArrowRightLeft, CalendarCheck, CreditCard, Landmark, ShieldCheck } from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
+import Image from 'next/image';
+import { ArrowRightLeft, CheckCircle, DollarSign, ShieldCheck, Smartphone } from 'lucide-react'; // Using different icons for variety
 
 interface FeatureItem {
-  icon: LucideIcon;
   title: string;
   description: string;
+  mockupSrc: string;
+  mockupAlt: string;
+  aiHint: string;
 }
 
-const features: FeatureItem[] = [
+const keyFeaturesList: FeatureItem[] = [
   {
-    icon: Activity,
-    title: 'Financial Insights',
-    description: 'Gain a clear view of your finances with intelligent dashboards and reports.',
+    title: 'Instant Transfers & Zelle®',
+    description: 'Seamlessly send and receive money with Zelle® and internal transfers.',
+    mockupSrc: 'https://placehold.co/200x380.png',
+    mockupAlt: 'VaultbyChase app transfer screen',
+    aiHint: 'phone transfer screen',
   },
   {
-    icon: Users,
-    title: 'Account Management',
-    description: 'Easily manage all your accounts, view balances, and track activities in one place.',
+    title: 'Mobile Check Deposits',
+    description: 'Deposit checks anytime, anywhere using your smartphone camera.',
+    mockupSrc: 'https://placehold.co/200x380.png',
+    mockupAlt: 'VaultbyChase app check deposit flow',
+    aiHint: 'phone check deposit',
   },
   {
-    icon: ArrowRightLeft,
-    title: 'Seamless Transfers',
-    description: 'Move money securely between your accounts or to external recipients with ease.',
+    title: 'Smart Financial Insights',
+    description: 'Understand spending and reach goals with personalized analytics.',
+    mockupSrc: 'https://placehold.co/200x380.png',
+    mockupAlt: 'VaultbyChase app budget/analytics screen',
+    aiHint: 'phone budget analytics',
   },
   {
-    icon: CalendarCheck,
-    title: 'Smart Bill Pay',
-    description: 'Never miss a payment with our automated bill pay system and scheduling options.',
-  },
-  {
-    icon: CreditCard,
-    title: 'Credit Card Control',
-    description: 'Manage your credit cards, track rewards, and monitor spending effortlessly.',
-  },
-  {
-    icon: Landmark,
-    title: 'Loan Portal',
-    description: 'Access loan information, make payments, or apply for new loans through our portal.',
+    title: 'Bank-Grade Security',
+    description: 'Multi-layered security and 24/7 access for your peace of mind.',
+    mockupSrc: 'https://placehold.co/200x380.png',
+    mockupAlt: 'VaultbyChase app security feature',
+    aiHint: 'phone security login',
   },
 ];
 
-export function Features() {
+export function KeyFeatures() {
   return (
     <section id="features" className="py-16 md:py-24 bg-muted">
       <div className="container mx-auto px-4 md:px-6">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold tracking-tight text-primary sm:text-4xl">
-            Everything You Need, All in One Place
+            Unlock a Smarter Way to Bank
           </h2>
-          <p className="mt-4 text-lg text-foreground/80">
-            VaultbyChase provides a comprehensive suite of tools to empower your financial journey.
+          <p className="mt-4 text-lg text-foreground/80 max-w-2xl mx-auto">
+            VaultbyChase offers innovative features designed for your convenience and security, accessible right from your pocket.
           </p>
         </div>
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-          {features.map((feature) => (
-            <Card key={feature.title} className="shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col">
-              <CardHeader className="flex flex-row items-center gap-4 pb-2">
-                <feature.icon className="h-10 w-10 text-primary" />
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
+          {keyFeaturesList.map((feature) => (
+            <Card key={feature.title} className="shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col bg-background overflow-hidden items-center text-center">
+              <div className="p-6 bg-primary/5 w-full flex justify-center">
+                <Image 
+                  src={feature.mockupSrc} 
+                  alt={feature.mockupAlt} 
+                  width={150} // Smaller mockups for card context
+                  height={300}
+                  className="rounded-xl shadow-lg"
+                  data-ai-hint={feature.aiHint}
+                />
+              </div>
+              <CardHeader className="pb-2 pt-6">
                 <CardTitle className="text-xl text-secondary">{feature.title}</CardTitle>
               </CardHeader>
               <CardContent className="flex-grow">
-                <p className="text-muted-foreground">{feature.description}</p>
+                <p className="text-muted-foreground text-sm">{feature.description}</p>
               </CardContent>
             </Card>
           ))}
