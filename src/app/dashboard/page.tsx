@@ -26,8 +26,8 @@ const initialMockAccounts: AccountDetail[] = [
     accountName: "Primary Checking",
     accountType: "checking",
     accountNumberSuffix: "1234", // Placeholder
-    balance: 5250.75,
-    availableBalance: 5200.50,
+    balance: 147342.28, // Updated
+    availableBalance: 147300.00, // Updated
     currency: "USD",
     status: "active",
     dateOpened: formatISO(subDays(new Date(), 365)),
@@ -50,7 +50,7 @@ const initialMockAccounts: AccountDetail[] = [
     accountName: "High-Yield Savings",
     accountType: "savings",
     accountNumberSuffix: "5678", // Placeholder
-    balance: 12870.20,
+    balance: 280483.09, // Updated
     currency: "USD",
     status: "active",
     dateOpened: formatISO(subDays(new Date(), 730)),
@@ -77,7 +77,7 @@ const initialMockAccounts: AccountDetail[] = [
     status: "active",
     dateOpened: formatISO(subDays(new Date(), 180)),
     icon: TrendingUp,
-    holdingCount: 3, // Corrected to match majorHoldings length
+    holdingCount: 3, 
     majorHoldings: [
       { id: "h1", symbol: "AAPL", name: "Apple Inc.", quantity: 50, currentValue: 9500.00, currentPrice: 190, dayChange: 2.50, dayChangePercentage: 0.013 },
       { id: "h2", symbol: "MSFT", name: "Microsoft Corp.", quantity: 30, currentValue: 12000.00, currentPrice: 400, dayChange: -1.20, dayChangePercentage: -0.003 },
@@ -88,20 +88,20 @@ const initialMockAccounts: AccountDetail[] = [
     dividendIncomeYTD: 350.00,
   },
   {
-    id: "cc101",
+    id: "cc101", // This is a Visa, assumed to be "Rewards Visa"
     userId: "userTest1",
     accountName: "Rewards Visa",
     accountType: "credit_card",
     accountNumberSuffix: "3456", // Placeholder
-    balance: -850.00, 
+    balance: -1403.42, // Updated
     creditLimit: 10000.00,
-    availableCredit: 9150.00,
+    availableCredit: 10000.00 - 1403.42, // Updated
     currency: "USD",
     status: "active",
     dateOpened: formatISO(subDays(new Date(), 500)),
     icon: CreditCardIconLucide,
-    currentStatementBalance: 750.00,
-    minimumPaymentDue: 35.00,
+    currentStatementBalance: 750.00, // Assuming this doesn't change with balance for mock data
+    minimumPaymentDue: 35.00, // Assuming this doesn't change with balance for mock data
     paymentDueDate: formatISO(addDays(new Date(), 15)),
     interestRateAPR: { purchase: 0.1999, cashAdvance: 0.2499 },
     rewardsBalance: { points: 12500, type: "points", description: "Travel Points" },

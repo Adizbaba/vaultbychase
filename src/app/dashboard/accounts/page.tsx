@@ -23,8 +23,8 @@ const initialUserAccounts: AccountDetail[] = [
     accountName: "Primary Checking",
     accountType: "checking",
     accountNumberSuffix: "1234", // Placeholder
-    balance: 5250.75,
-    availableBalance: 5200.50,
+    balance: 147342.28, // Updated
+    availableBalance: 147300.00, // Updated
     currency: "USD",
     status: "active",
     dateOpened: formatISO(subDays(new Date(), 365)),
@@ -44,7 +44,7 @@ const initialUserAccounts: AccountDetail[] = [
     accountName: "High-Yield Savings",
     accountType: "savings",
     accountNumberSuffix: "5678", // Placeholder
-    balance: 12870.20,
+    balance: 280483.09, // Updated
     currency: "USD",
     status: "active",
     dateOpened: formatISO(subDays(new Date(), 730)),
@@ -71,7 +71,7 @@ const initialUserAccounts: AccountDetail[] = [
     status: "active",
     dateOpened: formatISO(subDays(new Date(), 1000)),
     icon: TrendingUp,
-    holdingCount: 2, // Corrected to match majorHoldings length
+    holdingCount: 2, 
     majorHoldings: [
       { id: "hinv1", symbol: "VTI", name: "Vanguard Total Stock Market ETF", quantity: 200, currentValue: 50000.00, currentPrice: 250 },
       { id: "hinv2", symbol: "BND", name: "Vanguard Total Bond Market ETF", quantity: 500, currentValue: 37500.00, currentPrice: 75 },
@@ -80,20 +80,20 @@ const initialUserAccounts: AccountDetail[] = [
     investmentRiskLevel: "moderate",
   },
   {
-    id: "cc101",
+    id: "cc101", // Assumed to be "Rewards Visa"
     userId: "userTest1",
-    accountName: "Travel Rewards Card",
+    accountName: "Travel Rewards Card", // This is a Visa
     accountType: "credit_card",
     accountNumberSuffix: "1122", // Placeholder
-    balance: -1200.50,
+    balance: -1403.42, // Updated
     creditLimit: 15000.00,
-    availableCredit: 13799.50,
+    availableCredit: 15000.00 - 1403.42, // Updated
     currency: "USD",
     status: "active",
     dateOpened: formatISO(subDays(new Date(), 800)),
     icon: CreditCardIconLucide,
-    currentStatementBalance: 1100.00,
-    minimumPaymentDue: 50.00,
+    currentStatementBalance: 1100.00, // Assuming this doesn't change with balance for mock data
+    minimumPaymentDue: 50.00, // Assuming this doesn't change with balance for mock data
     paymentDueDate: formatISO(addDays(new Date(), 12)),
     interestRateAPR: { purchase: 0.1899 },
     rewardsBalance: { miles: 55000, type: "miles", description: "Airline Miles" },

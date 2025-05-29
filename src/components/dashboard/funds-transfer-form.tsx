@@ -32,8 +32,8 @@ type TransferFormValues = z.infer<typeof transferSchema>;
 
 // Initial mock user accounts
 const initialUserAccounts = [
-  { id: "checking123", name: "Primary Checking (•••• 1234)", balance: 5250.75 },
-  { id: "savings5678", name: "High-Yield Savings (•••• 5678)", balance: 12870.20 },
+  { id: "checking123", name: "Primary Checking (•••• 1234)", balance: 147342.28 }, // Updated
+  { id: "savings5678", name: "High-Yield Savings (•••• 5678)", balance: 280483.09 }, // Updated
   { id: "investment9012", name: "Investment Portfolio (•••• 9012)", balance: 75300.50 },
 ];
 

@@ -17,20 +17,20 @@ const generateRandomFourDigitString = (): string => {
 
 const initialUserCreditCards: CreditCardAccountDetails[] = [
   {
-    id: "cc1",
+    id: "cc1", // This is "VaultbyChase Rewards Visa"
     userId: "userTest1",
     accountName: "VaultbyChase Rewards Visa",
     accountType: "credit_card",
     accountNumberSuffix: "3456", // Placeholder
-    balance: -850.00, 
+    balance: -1403.42, // Updated 
     creditLimit: 5000.00,
-    availableCredit: 4150.00,
+    availableCredit: 5000.00 - 1403.42, // Updated
     currency: "USD",
     status: "active",
     dateOpened: formatISO(subDays(new Date(), 365*2)),
     icon: CreditCardIconLucide,
-    currentStatementBalance: 780.00,
-    minimumPaymentDue: 35.00,
+    currentStatementBalance: 780.00, // Assuming this doesn't change with balance for mock data
+    minimumPaymentDue: 35.00, // Assuming this doesn't change with balance for mock data
     paymentDueDate: formatISO(addDays(new Date(), 15)),
     lastStatementDate: formatISO(subDays(new Date(), 15)),
     nextClosingDate: formatISO(addDays(new Date(), 10)),
