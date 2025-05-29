@@ -2,13 +2,15 @@
 import { initializeApp, getApps, FirebaseApp } from "firebase/app";
 import { getAuth, Auth } from "firebase/auth";
 
+// Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  apiKey: "AIzaSyDdRR8yU_DjpnhNK5kyKUOK-4SB1DH-mQs",
+  authDomain: "weighty-elf-461314-q0.firebaseapp.com",
+  projectId: "weighty-elf-461314-q0",
+  storageBucket: "weighty-elf-461314-q0.appspot.com", // Corrected from .firebasestorage.app to .appspot.com as per standard
+  messagingSenderId: "846417326897",
+  appId: "1:846417326897:web:25fc8cc1a6a3e4404d7610",
+  measurementId: "G-R8V5XWGQHN"
 };
 
 let app: FirebaseApp;
