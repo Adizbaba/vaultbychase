@@ -1,15 +1,19 @@
+
 "use client";
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { useRouter } from 'next/navigation'; // Corrected import
+import { useRouter } from 'next/navigation';
+import { auth } from '@/lib/firebase/clientApp'; // Import Firebase auth instance
+import { createUserWithEmailAndPassword, updateProfile, User, onAuthStateChanged } from 'firebase/auth';
+import { Loader2 } from 'lucide-react';
 
 const signupSchema = z.object({
   fullName: z.string().min(2, { message: "Full name must be at least 2 characters." }),
@@ -25,6 +29,10 @@ type SignupFormValues = z.infer<typeof signupSchema>;
 
 export default function SignupPage() {
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [checkingAuthState, setCheckingAuthState] = useState(true);
+
   const form = useForm<SignupFormValues>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
@@ -35,13 +43,70 @@ export default function SignupPage() {
     },
   });
 
-  const onSubmit = (data: SignupFormValues) => {
-    console.log(data);
-    // TODO: Implement actual signup logic
-    // On successful signup, navigate to dashboard or login
-    router.push('/dashboard');
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user: User | null) => {
+      if (user) {
+        // If user is already signed in (e.g., just signed up and auto-logged in, or visited signup page while logged in)
+        router.push('/dashboard');
+      } else {
+        setCheckingAuthState(false);
+      }
+    });
+    return () => unsubscribe();
+  }, [router]);
+
+  const onSubmit = async (data: SignupFormValues) => {
+    setIsLoading(true);
+    setFormError(null);
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
+      // User created and signed in.
+      // Now, update the user's profile with the full name.
+      if (userCredential.user) {
+        await updateProfile(userCredential.user, {
+          displayName: data.fullName,
+        });
+      }
+      // onAuthStateChanged will typically handle redirecting to dashboard,
+      // but we can also explicitly push here as signup implies immediate access.
+      router.push('/dashboard');
+    } catch (error: any) {
+      let errorMessage = "An unexpected error occurred. Please try again.";
+      switch (error.code) {
+        case 'auth/email-already-in-use':
+          errorMessage = "This email address is already in use. Please try a different email or log in.";
+          break;
+        case 'auth/weak-password':
+          errorMessage = "The password is too weak. Please choose a stronger password.";
+          break;
+        case 'auth/invalid-email':
+          errorMessage = "The email address is not valid. Please enter a valid email.";
+          break;
+        case 'auth/operation-not-allowed':
+          errorMessage = "Email/password accounts are not enabled. Please contact support.";
+          break;
+        case 'auth/network-request-failed':
+          errorMessage = "Network error. Please check your connection and try again.";
+          break;
+        default:
+          errorMessage = error.message || "Signup failed. Please try again.";
+      }
+      setFormError(errorMessage);
+      console.error("Firebase signup error:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
   
+  if (checkingAuthState) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        <p className="mt-4 text-muted-foreground">Loading...</p>
+      </div>
+    );
+  }
+
   return (
     <Card className="border-none shadow-none">
       <CardHeader>
@@ -58,7 +123,7 @@ export default function SignupPage() {
                 <FormItem>
                   <FormLabel>Full Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="John Doe" {...field} />
+                    <Input placeholder="John Doe" {...field} disabled={isLoading} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -71,7 +136,7 @@ export default function SignupPage() {
                 <FormItem>
                   <FormLabel>Email Address</FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder="you@example.com" {...field} />
+                    <Input type="email" placeholder="you@example.com" {...field} disabled={isLoading} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -84,7 +149,7 @@ export default function SignupPage() {
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="••••••••" {...field} />
+                    <Input type="password" placeholder="••••••••" {...field} disabled={isLoading} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -97,15 +162,27 @@ export default function SignupPage() {
                 <FormItem>
                   <FormLabel>Confirm Password</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="••••••••" {...field} />
+                    <Input type="password" placeholder="••••••••" {...field} disabled={isLoading} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
+            {formError && (
+              <p className="text-sm font-medium text-destructive">{formError}</p>
+            )}
           </CardContent>
           <CardFooter className="flex flex-col gap-4">
-            <Button type="submit" className="w-full">Create Account</Button>
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating Account...
+                </>
+              ) : (
+                "Create Account"
+              )}
+            </Button>
             <p className="text-center text-sm text-muted-foreground">
               Already have an account?{' '}
               <Link href="/login" className="font-medium text-primary hover:underline">
