@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { ArrowDown, ArrowUp, Download, Filter } from "lucide-react";
 import { format } from 'date-fns'; // Import date-fns
+import Link from "next/link"; // Added Link import
 
 interface Transaction {
   id: string;
@@ -149,7 +150,7 @@ export function TransactionHistory({
         {showFilters && filteredTransactions.length < transactions.length && transactions.length > (defaultItemsToShow || 0) && (
             <div className="mt-4 text-center">
                 <Button variant="link" asChild>
-                    <Link href="/dashboard/accounts/transactions">View All Transactions</Link>
+                    <Link href="/dashboard/transactions">View All Transactions</Link>
                 </Button>
             </div>
         )}
