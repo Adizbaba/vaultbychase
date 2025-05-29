@@ -1,7 +1,7 @@
 
-"use client"; // Required for useState, useEffect, and event handlers
+"use client"; 
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -11,27 +11,30 @@ import { format, addDays, subDays, formatISO } from 'date-fns';
 import type { AccountDetail, LoanAccountDetails } from "@/types/accounts";
 import { AccountDetailsModal } from "@/components/dashboard/account-details-modal";
 
+const generateRandomFourDigitString = (): string => {
+  return Math.floor(1000 + Math.random() * 9000).toString();
+};
 
-const userLoans: LoanAccountDetails[] = [
+const initialUserLoans: LoanAccountDetails[] = [
   {
     id: "loan1",
     userId: "userTest1",
     accountName: "Home Mortgage",
     accountType: "loan",
     loanType: "mortgage",
-    accountNumberSuffix: "7890",
-    balance: 245000.00, // Current principal balance
+    accountNumberSuffix: "7890", // Placeholder
+    balance: 245000.00, 
     originalPrincipal: 250000.00,
     currency: "USD",
     status: "active",
-    dateOpened: formatISO(subDays(new Date(), 365 * 5)), // 5 years ago
+    dateOpened: formatISO(subDays(new Date(), 365 * 5)), 
     icon: LoanIconLucide,
     interestRate: 0.0375,
-    loanTermMonths: 360, // 30 years
+    loanTermMonths: 360, 
     paymentsMade: 60,
     remainingPayments: 300,
     nextPaymentAmount: 1850.00,
-    nextPaymentDate: formatISO(addDays(new Date(), 5)), // Due in 5 days
+    nextPaymentDate: formatISO(addDays(new Date(), 5)), 
     lastPaymentAmount: 1850.00,
     lastPaymentDate: formatISO(subDays(new Date(), 25)),
     escrowBalance: 2500.00,
@@ -43,15 +46,15 @@ const userLoans: LoanAccountDetails[] = [
     accountName: "Auto Loan - Toyota Camry",
     accountType: "loan",
     loanType: "auto",
-    accountNumberSuffix: "4321",
+    accountNumberSuffix: "4321", // Placeholder
     balance: 14500.00,
     originalPrincipal: 20000.00,
     currency: "USD",
     status: "active",
-    dateOpened: formatISO(subDays(new Date(), 365 * 1.5)), // 1.5 years ago
+    dateOpened: formatISO(subDays(new Date(), 365 * 1.5)), 
     icon: LoanIconLucide,
     interestRate: 0.0450,
-    loanTermMonths: 60, // 5 years
+    loanTermMonths: 60, 
     paymentsMade: 18,
     remainingPayments: 42,
     nextPaymentAmount: 350.00,
@@ -63,6 +66,17 @@ const userLoans: LoanAccountDetails[] = [
 export default function LoanManagementPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState<AccountDetail | null>(null);
+  const [displayedUserLoans, setDisplayedUserLoans] = useState<LoanAccountDetails[]>(initialUserLoans);
+
+  useEffect(() => {
+    // Randomize account suffixes on client-side
+    setDisplayedUserLoans(prevLoans => 
+      prevLoans.map(loan => ({
+        ...loan,
+        accountNumberSuffix: generateRandomFourDigitString(),
+      }))
+    );
+  }, []);
 
   const handleViewDetails = (account: AccountDetail) => {
     setSelectedAccount(account);
@@ -88,7 +102,7 @@ export default function LoanManagementPage() {
         </Button>
       </div>
 
-      {userLoans.map(loan => (
+      {displayedUserLoans.map(loan => (
         <Card key={loan.id} className="shadow-lg">
           <CardHeader>
             <div className="flex justify-between items-center">
@@ -134,7 +148,7 @@ export default function LoanManagementPage() {
         </Card>
       ))}
       
-      {userLoans.length === 0 && (
+      {displayedUserLoans.length === 0 && (
         <Card>
           <CardContent className="p-6 text-center text-muted-foreground">
             You do not have any active loans with VaultbyChase.

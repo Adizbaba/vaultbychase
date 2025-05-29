@@ -1,7 +1,7 @@
 
-"use client"; // Required for useState, useEffect, and event handlers
+"use client"; 
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AccountSummaryCard } from "@/components/dashboard/account-summary-card";
 import { TransactionHistory } from "@/components/dashboard/transaction-history";
 import { Button } from "@/components/ui/button";
@@ -9,16 +9,20 @@ import { DollarSign, Briefcase, TrendingUp, CreditCard as CreditCardIconLucide, 
 import Link from "next/link";
 import type { AccountDetail, CheckingAccountDetails, SavingsAccountDetails, InvestmentAccountDetails, CreditCardAccountDetails, LoanAccountDetails, Transaction } from "@/types/accounts";
 import { AccountDetailsModal } from "@/components/dashboard/account-details-modal";
-import { addDays, subDays, formatISO } from 'date-fns';
+import { addDays, subDays, formatISO, format } from 'date-fns';
 
-// Enhanced Mock Data for multiple accounts with details
-const userAccounts: AccountDetail[] = [
+const generateRandomFourDigitString = (): string => {
+  return Math.floor(1000 + Math.random() * 9000).toString();
+};
+
+// Initial Mock Data for multiple accounts with details
+const initialUserAccounts: AccountDetail[] = [
   {
     id: "checking123",
     userId: "userTest1",
     accountName: "Primary Checking",
     accountType: "checking",
-    accountNumberSuffix: "1234",
+    accountNumberSuffix: "1234", // Placeholder
     balance: 5250.75,
     availableBalance: 5200.50,
     currency: "USD",
@@ -39,7 +43,7 @@ const userAccounts: AccountDetail[] = [
     userId: "userTest1",
     accountName: "High-Yield Savings",
     accountType: "savings",
-    accountNumberSuffix: "5678",
+    accountNumberSuffix: "5678", // Placeholder
     balance: 12870.20,
     currency: "USD",
     status: "active",
@@ -57,7 +61,7 @@ const userAccounts: AccountDetail[] = [
     userId: "userTest1",
     accountName: "Retirement Fund",
     accountType: "investment",
-    accountNumberSuffix: "9012",
+    accountNumberSuffix: "9012", // Placeholder
     balance: 0, 
     portfolioValue: 150500.70,
     totalInvestment: 120000.00,
@@ -67,7 +71,7 @@ const userAccounts: AccountDetail[] = [
     status: "active",
     dateOpened: formatISO(subDays(new Date(), 1000)),
     icon: TrendingUp,
-    holdingCount: 3,
+    holdingCount: 2, // Corrected to match majorHoldings length
     majorHoldings: [
       { id: "hinv1", symbol: "VTI", name: "Vanguard Total Stock Market ETF", quantity: 200, currentValue: 50000.00, currentPrice: 250 },
       { id: "hinv2", symbol: "BND", name: "Vanguard Total Bond Market ETF", quantity: 500, currentValue: 37500.00, currentPrice: 75 },
@@ -80,7 +84,7 @@ const userAccounts: AccountDetail[] = [
     userId: "userTest1",
     accountName: "Travel Rewards Card",
     accountType: "credit_card",
-    accountNumberSuffix: "1122",
+    accountNumberSuffix: "1122", // Placeholder
     balance: -1200.50,
     creditLimit: 15000.00,
     availableCredit: 13799.50,
@@ -101,8 +105,8 @@ const userAccounts: AccountDetail[] = [
     userId: "userTest1",
     accountName: "Auto Loan - Honda Civic",
     accountType: "loan",
-    accountNumberSuffix: "7788",
-    balance: 12500.00, // Principal balance
+    accountNumberSuffix: "7788", // Placeholder
+    balance: 12500.00, 
     originalPrincipal: 22000.00,
     currency: "USD",
     status: "active",
@@ -131,6 +135,17 @@ const mockTransactions: Transaction[] = [
 export default function AccountsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState<AccountDetail | null>(null);
+  const [displayedUserAccounts, setDisplayedUserAccounts] = useState<AccountDetail[]>(initialUserAccounts);
+
+  useEffect(() => {
+    // Randomize account suffixes on client-side
+    setDisplayedUserAccounts(prevAccounts => 
+      prevAccounts.map(account => ({
+        ...account,
+        accountNumberSuffix: generateRandomFourDigitString(),
+      }))
+    );
+  }, []);
 
   const handleViewDetails = (account: AccountDetail) => {
     setSelectedAccount(account);
@@ -150,13 +165,13 @@ export default function AccountsPage() {
           <p className="text-muted-foreground">Manage your accounts and view detailed transaction histories.</p>
         </div>
         <Button asChild>
-          <Link href="/dashboard/accounts/open-new"> {/* This link would ideally go to a new page/form */}
+          <Link href="/dashboard/accounts/open-new"> 
             <PlusCircle className="mr-2 h-5 w-5" /> Open New Account
           </Link>
         </Button>
       </div>
 
-      {userAccounts.map(account => (
+      {displayedUserAccounts.map(account => (
         <div key={account.id} className="space-y-6">
           <AccountSummaryCard
             account={account}
@@ -167,7 +182,8 @@ export default function AccountsPage() {
               title={`Recent Activity for ${account.accountName}`}
               transactions={mockTransactions.filter(tx => tx.accountId === account.id)}
               defaultItemsToShow={3}
-              showFilters={true} // Allow full filters for individual account views
+              showFilters={true} 
+              accountIdContext={account.id}
             />
           </div>
         </div>

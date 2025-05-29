@@ -1,7 +1,7 @@
 
-"use client"; // Required for useState, useEffect, and event handlers
+"use client"; 
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -11,14 +11,18 @@ import { format, addDays, subDays, formatISO } from 'date-fns';
 import type { AccountDetail, CreditCardAccountDetails } from "@/types/accounts";
 import { AccountDetailsModal } from "@/components/dashboard/account-details-modal";
 
-const userCreditCards: CreditCardAccountDetails[] = [
+const generateRandomFourDigitString = (): string => {
+  return Math.floor(1000 + Math.random() * 9000).toString();
+};
+
+const initialUserCreditCards: CreditCardAccountDetails[] = [
   {
     id: "cc1",
     userId: "userTest1",
     accountName: "VaultbyChase Rewards Visa",
     accountType: "credit_card",
-    accountNumberSuffix: "3456",
-    balance: -850.00, // Amount owed
+    accountNumberSuffix: "3456", // Placeholder
+    balance: -850.00, 
     creditLimit: 5000.00,
     availableCredit: 4150.00,
     currency: "USD",
@@ -37,7 +41,7 @@ const userCreditCards: CreditCardAccountDetails[] = [
     cashAdvanceLimit: 1000.00,
     cashAdvanceAPR: 0.2599,
     isTravelCard: true,
-    foreignTransactionFeeRate: 0, // No foreign transaction fee
+    foreignTransactionFeeRate: 0, 
     annualFee: 95.00,
   },
   {
@@ -45,7 +49,7 @@ const userCreditCards: CreditCardAccountDetails[] = [
     userId: "userTest1",
     accountName: "VaultbyChase Cashback Mastercard",
     accountType: "credit_card",
-    accountNumberSuffix: "7890",
+    accountNumberSuffix: "7890", // Placeholder
     balance: -250.75,
     creditLimit: 10000.00,
     availableCredit: 9749.25,
@@ -67,6 +71,17 @@ const userCreditCards: CreditCardAccountDetails[] = [
 export default function CreditCardPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState<AccountDetail | null>(null);
+  const [displayedUserCreditCards, setDisplayedUserCreditCards] = useState<CreditCardAccountDetails[]>(initialUserCreditCards);
+
+  useEffect(() => {
+    // Randomize account suffixes on client-side
+    setDisplayedUserCreditCards(prevCards => 
+      prevCards.map(card => ({
+        ...card,
+        accountNumberSuffix: generateRandomFourDigitString(),
+      }))
+    );
+  }, []);
 
   const handleViewDetails = (account: AccountDetail) => {
     setSelectedAccount(account);
@@ -92,7 +107,7 @@ export default function CreditCardPage() {
         </Button>
       </div>
 
-      {userCreditCards.map(card => (
+      {displayedUserCreditCards.map(card => (
         <Card key={card.id} className="shadow-lg overflow-hidden">
           <CardHeader className="bg-gradient-to-r from-primary/80 to-secondary/80 text-primary-foreground p-6">
             <div className="flex justify-between items-center">
@@ -141,7 +156,7 @@ export default function CreditCardPage() {
         </Card>
       ))}
       
-      {userCreditCards.length === 0 && (
+      {displayedUserCreditCards.length === 0 && (
         <Card>
           <CardContent className="p-6 text-center text-muted-foreground">
             You don&apos;t have any credit cards linked to your account.

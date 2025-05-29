@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { TransactionHistory } from "@/components/dashboard/transaction-history";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,24 +10,28 @@ import { subDays, format } from "date-fns";
 
 interface Transaction {
   id: string;
-  accountId: string; // To link transaction to an account
+  accountId: string; 
   date: string;
   description: string;
   amount: number;
-  type: "debit" | "credit" | "transfer";
-  status: "completed" | "pending" | "failed";
+  type: "debit" | "credit" | "transfer" | "transfer_in" | "transfer_out" | "payment" | "fee" | "interest" | "dividend" | "investment_buy" | "investment_sell"; // Extended types
+  status: "completed" | "pending" | "failed" | "cancelled"; // Extended statuses
 }
 
-// Mock accounts for filtering
-const filterableAccounts = [
+const generateRandomFourDigitString = (): string => {
+  return Math.floor(1000 + Math.random() * 9000).toString();
+};
+
+// Mock accounts for filtering - initial state
+const initialFilterableAccounts = [
   { id: "all", name: "All Accounts" },
   { id: "checking123", name: "Primary Checking (•••• 1234)" },
   { id: "savings456", name: "High-Yield Savings (•••• 5678)" },
   { id: "cc1", name: "VaultbyChase Rewards Visa (•••• 3456)" },
-  { id: "cc2", name: "VaultbyChase Travel Mastercard (•••• 7890)" },
+  { id: "cc2", name: "VaultbyChase Travel Mastercard (•••• 7890)" }, // This was cc101, cc2 is new in cardspage
   { id: "loan1", name: "Mortgage (•••• 7890)" },
   { id: "loan2", name: "Auto Loan (•••• 4321)" },
-  { id: "investment9012", name: "Investment Portfolio (•••• 9012)" }, // From dashboard page
+  { id: "investment789", name: "Investment Portfolio (•••• 9012)" }, 
 ];
 
 // Generate ~40 mock transactions
@@ -42,30 +46,29 @@ const generateMockTransactions = (): Transaction[] => {
     "Birthday Gift Received", "Online Course Fee", "Streaming Service", "Mobile Phone Bill", "Internet Bill",
     "Childcare Expenses", "Investment Purchase", "Investment Sale", "Parking Fee", "Public Transport", "Taxi Ride"
   ];
-  const accountIds = filterableAccounts.filter(acc => acc.id !== "all").map(acc => acc.id);
-  const types: Array<"debit" | "credit" | "transfer"> = ["debit", "credit", "transfer"];
-  const statuses: Array<"completed" | "pending" | "failed"> = ["completed", "pending", "failed"];
+  const accountIds = initialFilterableAccounts.filter(acc => acc.id !== "all").map(acc => acc.id);
+  const types: Array<Transaction["type"]> = ["debit", "credit", "transfer", "payment", "fee", "interest", "dividend", "investment_buy", "investment_sell"];
+  const statuses: Array<Transaction["status"]> = ["completed", "pending", "failed", "cancelled"];
   const today = new Date();
 
   for (let i = 0; i < 40; i++) {
     const accountId = accountIds[Math.floor(Math.random() * accountIds.length)];
     const type = types[Math.floor(Math.random() * types.length)];
-    let amount = parseFloat((Math.random() * (type === "credit" ? 3000 : 500) + 5).toFixed(2));
-    if (type === "debit" || (type === "transfer" && Math.random() < 0.5)) {
+    let amount = parseFloat((Math.random() * (type === "credit" || type === "interest" || type === "dividend" || type === "investment_sell" ? 3000 : 500) + 5).toFixed(2));
+    if (type === "debit" || type === "transfer_out" || type === "payment" || type === "fee" || type === "investment_buy" || (type === "transfer" && Math.random() < 0.5) ) {
       amount = -amount;
     }
 
     transactions.push({
       id: `txn${i + 1}`,
       accountId: accountId,
-      date: format(subDays(today, Math.floor(Math.random() * 90)), "yyyy-MM-dd"), // Transactions within last 90 days
+      date: format(subDays(today, Math.floor(Math.random() * 90)), "yyyy-MM-dd"), 
       description: descriptions[Math.floor(Math.random() * descriptions.length)],
       amount: amount,
       type: type,
       status: statuses[Math.floor(Math.random() * statuses.length)],
     });
   }
-  // Sort by date descending
   return transactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 };
 
@@ -73,6 +76,17 @@ const allMockTransactions = generateMockTransactions();
 
 export default function AllTransactionsPage() {
   const [selectedAccountId, setSelectedAccountId] = useState<string>("all");
+  const [displayedFilterableAccounts, setDisplayedFilterableAccounts] = useState(initialFilterableAccounts);
+
+  useEffect(() => {
+    // Randomize account suffixes in filterable account names on client-side
+    setDisplayedFilterableAccounts(prevAccounts =>
+      prevAccounts.map(acc => ({
+        ...acc,
+        name: acc.id === "all" ? acc.name : acc.name.replace(/\(•••• \d{4}\)/, `(•••• ${generateRandomFourDigitString()})`),
+      }))
+    );
+  }, []);
 
   const displayedTransactions = useMemo(() => {
     if (selectedAccountId === "all") {
@@ -100,7 +114,7 @@ export default function AllTransactionsPage() {
               <SelectValue placeholder="Select an account" />
             </SelectTrigger>
             <SelectContent>
-              {filterableAccounts.map(account => (
+              {displayedFilterableAccounts.map(account => (
                 <SelectItem key={account.id} value={account.id}>
                   {account.name}
                 </SelectItem>
@@ -113,8 +127,7 @@ export default function AllTransactionsPage() {
       <TransactionHistory
         title="Filtered Transactions"
         transactions={displayedTransactions}
-        showFilters={true} // Enable internal filters (description, type, status)
-        // defaultItemsToShow is not set, so it will show all passed transactions
+        showFilters={true} 
       />
     </div>
   );

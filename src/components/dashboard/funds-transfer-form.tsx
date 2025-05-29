@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react"; // Added useEffect
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -11,7 +12,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast"; // Ensure useToast is available
+import { useToast } from "@/hooks/use-toast";
+
+const generateRandomFourDigitString = (): string => {
+  return Math.floor(1000 + Math.random() * 9000).toString();
+};
 
 const transferSchema = z.object({
   fromAccount: z.string().min(1, "Please select an account to transfer from."),
@@ -25,8 +30,8 @@ const transferSchema = z.object({
 
 type TransferFormValues = z.infer<typeof transferSchema>;
 
-// Mock user accounts
-const userAccounts = [
+// Initial mock user accounts
+const initialUserAccounts = [
   { id: "checking123", name: "Primary Checking (•••• 1234)", balance: 5250.75 },
   { id: "savings5678", name: "High-Yield Savings (•••• 5678)", balance: 12870.20 },
   { id: "investment9012", name: "Investment Portfolio (•••• 9012)", balance: 75300.50 },
@@ -34,6 +39,18 @@ const userAccounts = [
 
 export function FundsTransferForm() {
   const { toast } = useToast();
+  const [displayedUserAccounts, setDisplayedUserAccounts] = useState(initialUserAccounts);
+
+  useEffect(() => {
+    // Randomize account suffixes in account names on client-side
+    setDisplayedUserAccounts(prevAccounts =>
+      prevAccounts.map(acc => ({
+        ...acc,
+        name: acc.name.replace(/\(•••• \d{4}\)/, `(•••• ${generateRandomFourDigitString()})`),
+      }))
+    );
+  }, []);
+  
   const form = useForm<TransferFormValues>({
     resolver: zodResolver(transferSchema),
     defaultValues: {
@@ -49,7 +66,7 @@ export function FundsTransferForm() {
     // TODO: Implement actual transfer logic
     toast({
       title: "Transfer Successful",
-      description: `$${data.amount.toFixed(2)} transferred from ${userAccounts.find(acc => acc.id === data.fromAccount)?.name} to ${userAccounts.find(acc => acc.id === data.toAccount)?.name}.`,
+      description: `$${data.amount.toFixed(2)} transferred from ${displayedUserAccounts.find(acc => acc.id === data.fromAccount)?.name} to ${displayedUserAccounts.find(acc => acc.id === data.toAccount)?.name}.`,
       variant: "default", 
     });
     form.reset();
@@ -77,7 +94,7 @@ export function FundsTransferForm() {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {userAccounts.map(acc => (
+                      {displayedUserAccounts.map(acc => (
                         <SelectItem key={acc.id} value={acc.id}>
                           {acc.name} - Balance: ${acc.balance.toFixed(2)}
                         </SelectItem>
@@ -102,7 +119,7 @@ export function FundsTransferForm() {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {userAccounts.map(acc => (
+                      {displayedUserAccounts.map(acc => (
                         <SelectItem key={acc.id} value={acc.id}>
                           {acc.name} - Balance: ${acc.balance.toFixed(2)}
                         </SelectItem>

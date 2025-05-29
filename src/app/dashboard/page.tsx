@@ -12,16 +12,20 @@ import { auth } from '@/lib/firebase/clientApp';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import type { AccountDetail, CheckingAccountDetails, SavingsAccountDetails, InvestmentAccountDetails, CreditCardAccountDetails } from "@/types/accounts";
 import { AccountDetailsModal } from "@/components/dashboard/account-details-modal";
-import { addDays, subDays, formatISO } from 'date-fns';
+import { addDays, subDays, formatISO, format } from 'date-fns';
 
-// Enhanced Mock Data
-const mockAccounts: AccountDetail[] = [
+const generateRandomFourDigitString = (): string => {
+  return Math.floor(1000 + Math.random() * 9000).toString();
+};
+
+// Initial Mock Data (suffixes will be randomized client-side)
+const initialMockAccounts: AccountDetail[] = [
   {
     id: "checking123",
     userId: "userTest1",
     accountName: "Primary Checking",
     accountType: "checking",
-    accountNumberSuffix: "1234",
+    accountNumberSuffix: "1234", // Placeholder
     balance: 5250.75,
     availableBalance: 5200.50,
     currency: "USD",
@@ -45,7 +49,7 @@ const mockAccounts: AccountDetail[] = [
     userId: "userTest1",
     accountName: "High-Yield Savings",
     accountType: "savings",
-    accountNumberSuffix: "5678",
+    accountNumberSuffix: "5678", // Placeholder
     balance: 12870.20,
     currency: "USD",
     status: "active",
@@ -63,8 +67,8 @@ const mockAccounts: AccountDetail[] = [
     userId: "userTest1",
     accountName: "Growth Portfolio",
     accountType: "investment",
-    accountNumberSuffix: "9012",
-    balance: 0, // Initial deposit or less relevant, portfolioValue is key
+    accountNumberSuffix: "9012", // Placeholder
+    balance: 0, 
     portfolioValue: 75300.50,
     totalInvestment: 65000.00,
     totalGainLoss: 10300.50,
@@ -73,7 +77,7 @@ const mockAccounts: AccountDetail[] = [
     status: "active",
     dateOpened: formatISO(subDays(new Date(), 180)),
     icon: TrendingUp,
-    holdingCount: 5,
+    holdingCount: 3, // Corrected to match majorHoldings length
     majorHoldings: [
       { id: "h1", symbol: "AAPL", name: "Apple Inc.", quantity: 50, currentValue: 9500.00, currentPrice: 190, dayChange: 2.50, dayChangePercentage: 0.013 },
       { id: "h2", symbol: "MSFT", name: "Microsoft Corp.", quantity: 30, currentValue: 12000.00, currentPrice: 400, dayChange: -1.20, dayChangePercentage: -0.003 },
@@ -88,8 +92,8 @@ const mockAccounts: AccountDetail[] = [
     userId: "userTest1",
     accountName: "Rewards Visa",
     accountType: "credit_card",
-    accountNumberSuffix: "3456",
-    balance: -850.00, // Amount owed
+    accountNumberSuffix: "3456", // Placeholder
+    balance: -850.00, 
     creditLimit: 10000.00,
     availableCredit: 9150.00,
     currency: "USD",
@@ -119,6 +123,7 @@ export default function DashboardOverviewPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState<AccountDetail | null>(null);
+  const [displayedAccounts, setDisplayedAccounts] = useState<AccountDetail[]>(initialMockAccounts);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user: User | null) => {
@@ -134,6 +139,15 @@ export default function DashboardOverviewPage() {
       }
       setIsLoading(false);
     });
+
+    // Randomize account suffixes on client-side
+    setDisplayedAccounts(prevAccounts => 
+      prevAccounts.map(account => ({
+        ...account,
+        accountNumberSuffix: generateRandomFourDigitString(),
+      }))
+    );
+
     return () => unsubscribe();
   }, []);
 
@@ -163,7 +177,7 @@ export default function DashboardOverviewPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        {mockAccounts.map(acc => (
+        {displayedAccounts.map(acc => (
           <AccountSummaryCard 
             key={acc.id}
             account={acc}
