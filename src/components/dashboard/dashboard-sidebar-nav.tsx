@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -13,7 +14,8 @@ import {
   MessageSquare,
   Settings,
   PieChart,
-  FileText
+  FileText,
+  History // Added History icon
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -45,6 +47,7 @@ const mainNavItems: NavItem[] = [
 ];
 
 const secondaryNavItems: NavItem[] = [
+  { href: "/dashboard/transactions", label: "Transaction History", icon: History }, // Added Transaction History
   { href: "/dashboard/reports", label: "Reports", icon: PieChart },
   { href: "/dashboard/statements", label: "Statements", icon: FileText },
   { href: "/support", label: "Support", icon: MessageSquare },
