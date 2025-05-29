@@ -16,17 +16,49 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { ThemeToggleButton } from "@/components/theme-toggle-button";
-import { auth } from "@/lib/firebase/clientApp"; // Import Firebase auth
-import { signOut } from "firebase/auth"; // Import signOut
-import { useState } from "react";
+import { auth } from "@/lib/firebase/clientApp"; 
+import { signOut, onAuthStateChanged, User } from "firebase/auth"; 
+import React, { useState, useEffect } from "react"; // Ensured React import
 import { useToast } from "@/hooks/use-toast";
 
+const LOCAL_STORAGE_AVATAR_KEY = 'userUploadedAvatarUrl';
 
 export function DashboardHeader({ pageTitle }: { pageTitle?: string }) {
   const router = useRouter();
   const pathname = usePathname();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const { toast } = useToast();
+  const [userDisplayName, setUserDisplayName] = useState("User");
+  const [userAvatarUrl, setUserAvatarUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser: User | null) => {
+      if (currentUser) {
+        setUserDisplayName(currentUser.displayName?.split(' ')[0] || "User");
+      } else {
+        setUserDisplayName("User");
+      }
+    });
+
+    // Load avatar from localStorage
+    const loadAvatar = () => {
+      const storedAvatar = localStorage.getItem(LOCAL_STORAGE_AVATAR_KEY);
+      setUserAvatarUrl(storedAvatar);
+    };
+    loadAvatar();
+
+    // Listen for storage changes to update avatar if changed in another tab/component
+    window.addEventListener('storage', (event) => {
+      if (event.key === LOCAL_STORAGE_AVATAR_KEY) {
+        loadAvatar();
+      }
+    });
+    
+    return () => {
+      unsubscribe();
+      window.removeEventListener('storage', loadAvatar);
+    };
+  }, []);
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -36,6 +68,7 @@ export function DashboardHeader({ pageTitle }: { pageTitle?: string }) {
         title: "Logged Out",
         description: "You have been successfully logged out.",
       });
+      localStorage.removeItem(LOCAL_STORAGE_AVATAR_KEY); // Clear avatar on logout
       router.push('/login');
     } catch (error) {
       console.error("Logout error:", error);
@@ -49,18 +82,20 @@ export function DashboardHeader({ pageTitle }: { pageTitle?: string }) {
     }
   };
   
-  // Determine the page title based on pathname if not provided
   let title = pageTitle;
   if (!title) {
     const pathSegments = pathname.split('/').filter(Boolean);
     if (pathSegments.length > 1) {
       title = pathSegments[1].charAt(0).toUpperCase() + pathSegments[1].slice(1);
-      if (title === "Page") title = "Overview"; // Handle generic dashboard page
+      if (title === "Page") title = "Overview"; 
     } else {
       title = "Dashboard";
     }
   }
 
+  const getInitials = (name: string) => {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase() || 'VC'; // Default to VC if name is empty
+  }
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6 justify-between">
@@ -81,8 +116,12 @@ export function DashboardHeader({ pageTitle }: { pageTitle?: string }) {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-10 w-10 rounded-full" disabled={isLoggingOut}>
               <Avatar className="h-10 w-10">
-                <AvatarImage src="https://placehold.co/100x100.png" alt="User avatar" data-ai-hint="person user" />
-                <AvatarFallback>VC</AvatarFallback>
+                <AvatarImage 
+                  src={userAvatarUrl || "https://placehold.co/100x100.png"} 
+                  alt={userDisplayName}
+                  data-ai-hint={!userAvatarUrl ? "person user" : undefined}
+                />
+                <AvatarFallback>{getInitials(userDisplayName)}</AvatarFallback>
               </Avatar>
             </Button>
           </DropdownMenuTrigger>
