@@ -1,7 +1,11 @@
 
+"use client";
+
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Star } from 'lucide-react';
+import { useInViewAnimation } from '@/hooks/useInViewAnimation';
+import { cn } from '@/lib/utils';
 
 interface Testimonial {
   name: string;
@@ -43,11 +47,56 @@ const testimonials: Testimonial[] = [
   },
 ];
 
+const TestimonialCard = ({ testimonial, index }: { testimonial: Testimonial; index: number }) => {
+  const { ref, isInView } = useInViewAnimation({ triggerOnce: true, threshold: 0.2 });
+  return (
+    <div
+      ref={ref}
+      className={cn(
+        'opacity-0 transform translate-y-8 transition-all duration-700 ease-out',
+        isInView && 'opacity-100 translate-y-0',
+        `delay-${index * 150}`
+      )}
+    >
+      <Card className="shadow-lg hover:-translate-y-1 hover:shadow-xl transition-all duration-300 bg-background h-full">
+        <CardContent className="pt-6">
+          <div className="flex items-center mb-4">
+            <Avatar className="h-12 w-12 mr-4 border-2 border-primary/20">
+              <AvatarImage src={testimonial.avatar} alt={testimonial.name} data-ai-hint={testimonial.aiHint} />
+              <AvatarFallback>{testimonial.avatarFallback}</AvatarFallback>
+            </Avatar>
+            <div>
+              <p className="font-semibold text-secondary">{testimonial.name}</p>
+              <p className="text-sm text-muted-foreground">{testimonial.role}</p>
+            </div>
+          </div>
+          <div className="flex mb-2">
+            {Array(5).fill(0).map((_, i) => (
+              <Star key={i} className={`h-5 w-5 ${i < testimonial.rating ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground/30'}`} />
+            ))}
+          </div>
+          <blockquote className="text-foreground/90 italic text-sm">
+            "{testimonial.quote}"
+          </blockquote>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
 export function Testimonials() {
+  const { ref: sectionTitleRef, isInView: sectionTitleInView } = useInViewAnimation({ triggerOnce: true, threshold: 0.5 });
+
   return (
     <section id="testimonials" className="py-16 md:py-24 bg-muted">
       <div className="container mx-auto px-4 md:px-6">
-        <div className="text-center mb-12">
+        <div
+          ref={sectionTitleRef}
+          className={cn(
+            "text-center mb-12 opacity-0 transform translate-y-8 transition-all duration-700 ease-out",
+            sectionTitleInView && "opacity-100 translate-y-0"
+          )}
+        >
           <h2 className="text-3xl font-bold tracking-tight text-primary sm:text-4xl">
             Trusted by Thousands
           </h2>
@@ -56,29 +105,8 @@ export function Testimonials() {
           </p>
         </div>
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-          {testimonials.map((testimonial) => (
-            <Card key={testimonial.name} className="shadow-lg hover:shadow-xl transition-shadow duration-300 bg-background">
-              <CardContent className="pt-6">
-                <div className="flex items-center mb-4">
-                  <Avatar className="h-12 w-12 mr-4 border-2 border-primary/20">
-                    <AvatarImage src={testimonial.avatar} alt={testimonial.name} data-ai-hint={testimonial.aiHint} />
-                    <AvatarFallback>{testimonial.avatarFallback}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-semibold text-secondary">{testimonial.name}</p>
-                    <p className="text-sm text-muted-foreground">{testimonial.role}</p>
-                  </div>
-                </div>
-                <div className="flex mb-2">
-                  {Array(5).fill(0).map((_, i) => (
-                    <Star key={i} className={`h-5 w-5 ${i < testimonial.rating ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground/30'}`} />
-                  ))}
-                </div>
-                <blockquote className="text-foreground/90 italic text-sm">
-                  "{testimonial.quote}"
-                </blockquote>
-              </CardContent>
-            </Card>
+          {testimonials.map((testimonial, index) => (
+            <TestimonialCard key={testimonial.name} testimonial={testimonial} index={index} />
           ))}
         </div>
       </div>

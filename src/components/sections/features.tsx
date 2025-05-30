@@ -1,7 +1,10 @@
 
+"use client";
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Image from 'next/image';
-import { ArrowRightLeft, CheckCircle, DollarSign, ShieldCheck, Smartphone } from 'lucide-react'; // Using different icons for variety
+import { useInViewAnimation } from '@/hooks/useInViewAnimation';
+import { cn } from '@/lib/utils';
 
 interface FeatureItem {
   title: string;
@@ -42,11 +45,52 @@ const keyFeaturesList: FeatureItem[] = [
   },
 ];
 
+const FeatureCard = ({ feature, index }: { feature: FeatureItem; index: number }) => {
+  const { ref, isInView } = useInViewAnimation({ triggerOnce: true, threshold: 0.2 });
+
+  return (
+    <div
+      ref={ref}
+      className={cn(
+        'opacity-0 transform translate-y-8 transition-all duration-700 ease-out group',
+        isInView && 'opacity-100 translate-y-0',
+        `delay-${index * 150}`
+      )}
+    >
+      <Card className="shadow-lg hover:-translate-y-1.5 hover:shadow-xl hover:scale-[1.02] transition-all duration-300 flex flex-col bg-background overflow-hidden items-center text-center h-full">
+        <div className="p-6 bg-primary/5 w-full flex justify-center group-hover:bg-primary/10 transition-colors duration-300">
+          <Image 
+            src={feature.mockupSrc} 
+            alt={feature.mockupAlt} 
+            width={150}
+            height={300}
+            className="rounded-xl shadow-lg group-hover:scale-105 transition-transform duration-300"
+            data-ai-hint={feature.aiHint}
+          />
+        </div>
+        <CardHeader className="pb-2 pt-6">
+          <CardTitle className="text-xl text-secondary">{feature.title}</CardTitle>
+        </CardHeader>
+        <CardContent className="flex-grow">
+          <p className="text-muted-foreground text-sm">{feature.description}</p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
 export function KeyFeatures() {
+  const { ref: sectionTitleRef, isInView: sectionTitleInView } = useInViewAnimation({ triggerOnce: true, threshold: 0.5 });
   return (
     <section id="features" className="py-16 md:py-24 bg-muted">
       <div className="container mx-auto px-4 md:px-6">
-        <div className="text-center mb-12">
+        <div
+          ref={sectionTitleRef}
+          className={cn(
+            "text-center mb-12 opacity-0 transform translate-y-8 transition-all duration-700 ease-out",
+            sectionTitleInView && "opacity-100 translate-y-0"
+          )}
+        >
           <h2 className="text-3xl font-bold tracking-tight text-primary sm:text-4xl">
             Unlock a Smarter Way to Bank
           </h2>
@@ -55,25 +99,8 @@ export function KeyFeatures() {
           </p>
         </div>
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
-          {keyFeaturesList.map((feature) => (
-            <Card key={feature.title} className="shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col bg-background overflow-hidden items-center text-center">
-              <div className="p-6 bg-primary/5 w-full flex justify-center">
-                <Image 
-                  src={feature.mockupSrc} 
-                  alt={feature.mockupAlt} 
-                  width={150} // Smaller mockups for card context
-                  height={300}
-                  className="rounded-xl shadow-lg"
-                  data-ai-hint={feature.aiHint}
-                />
-              </div>
-              <CardHeader className="pb-2 pt-6">
-                <CardTitle className="text-xl text-secondary">{feature.title}</CardTitle>
-              </CardHeader>
-              <CardContent className="flex-grow">
-                <p className="text-muted-foreground text-sm">{feature.description}</p>
-              </CardContent>
-            </Card>
+          {keyFeaturesList.map((feature, index) => (
+            <FeatureCard key={feature.title} feature={feature} index={index} />
           ))}
         </div>
       </div>
