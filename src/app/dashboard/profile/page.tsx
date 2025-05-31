@@ -7,37 +7,50 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Camera, Edit3 } from "lucide-react";
+import { Camera, Edit3, Loader2 } from "lucide-react";
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
-
-const LOCAL_STORAGE_AVATAR_KEY = 'userUploadedAvatarUrl';
+import { auth, storage } from '@/lib/firebase/clientApp'; // Import storage
+import { onAuthStateChanged, updateProfile, User } from 'firebase/auth';
+import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 export default function ProfilePage() {
   const { toast } = useToast();
-  // Mock user data - in a real app, this would come from auth state or API
   const [user, setUser] = useState({
-    fullName: "John Doe",
-    email: "john.doe@example.com",
+    fullName: "User", // Default, will be updated
+    email: "user@example.com", // Default, will be updated
     phone: "+1 (555) 123-4567",
     address: "123 Main St, Anytown, USA 12345",
-    memberSince: "2022-01-15",
-    // avatarUrl will be managed by dedicated state now
+    memberSince: new Date().toISOString(), // Default, will be updated
   });
 
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
 
   useEffect(() => {
-    const storedAvatar = localStorage.getItem(LOCAL_STORAGE_AVATAR_KEY);
-    if (storedAvatar) {
-      setAvatarPreview(storedAvatar);
-    }
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser) {
+        setCurrentUser(firebaseUser);
+        setUser(prev => ({
+          ...prev,
+          fullName: firebaseUser.displayName || "User",
+          email: firebaseUser.email || "user@example.com",
+          memberSince: firebaseUser.metadata.creationTime || new Date().toISOString(),
+        }));
+        setAvatarPreview(firebaseUser.photoURL);
+      } else {
+        setCurrentUser(null);
+        // Handle logged out state if necessary, e.g., redirect
+      }
+    });
+    return () => unsubscribe();
   }, []);
 
-  const handleAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
+    if (file && currentUser) {
       if (file.size > 2 * 1024 * 1024) { // Max 2MB
         toast({
           title: "Image Too Large",
@@ -55,28 +68,37 @@ export default function ProfilePage() {
         return;
       }
 
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const dataUrl = reader.result as string;
-        setAvatarPreview(dataUrl);
-        try {
-          localStorage.setItem(LOCAL_STORAGE_AVATAR_KEY, dataUrl);
-          // Dispatch a storage event so other tabs/components can react if needed
-          window.dispatchEvent(new StorageEvent('storage', { key: LOCAL_STORAGE_AVATAR_KEY }));
-           toast({
-            title: "Avatar Updated",
-            description: "Your profile picture preview has been updated.",
-          });
-        } catch (error) {
-          console.error("Error saving avatar to localStorage:", error);
-          toast({
-            title: "Storage Error",
-            description: "Could not save avatar. Your browser storage might be full.",
-            variant: "destructive",
-          });
+      setIsUploading(true);
+      try {
+        const imageRef = storageRef(storage, `avatars/${currentUser.uid}/${file.name}`);
+        await uploadBytes(imageRef, file);
+        const downloadURL = await getDownloadURL(imageRef);
+        
+        await updateProfile(currentUser, { photoURL: downloadURL });
+        setAvatarPreview(downloadURL);
+
+        // Dispatch a custom event to notify header about avatar change
+        // This is an alternative to storage event listener if localStorage is removed
+        window.dispatchEvent(new CustomEvent('avatarUpdated', { detail: { photoURL: downloadURL } }));
+
+        toast({
+          title: "Avatar Updated",
+          description: "Your profile picture has been successfully uploaded.",
+        });
+      } catch (error) {
+        console.error("Error uploading avatar:", error);
+        toast({
+          title: "Upload Failed",
+          description: "Could not upload your avatar. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsUploading(false);
+         // Reset file input to allow re-uploading the same file if needed
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
         }
-      };
-      reader.readAsDataURL(file);
+      }
     }
   };
 
@@ -85,25 +107,38 @@ export default function ProfilePage() {
   };
   
   const getInitials = (name: string) => {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+    return name.split(' ').map(n => n[0]).join('').toUpperCase() || 'VC';
   }
 
-  // Handle form field changes (basic example)
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
     setUser(prevUser => ({ ...prevUser, [id]: value }));
   };
 
-  const handleProfileUpdate = () => {
-    // In a real app, you'd send user data (and potentially avatarFile) to your backend
-    console.log("Profile updated:", user);
-    toast({
-      title: "Profile Updated",
-      description: "Your profile information has been saved (locally for this demo).",
-    });
-     // If avatarPreview exists and is different from localStorage, it means it was just changed
-    // but not necessarily "saved" to a backend. localStorage saving is handled by handleAvatarChange.
-    // This function could trigger an actual backend upload if `avatarFile` was stored in state.
+  const handleProfileUpdate = async () => {
+    if (!currentUser) {
+      toast({ title: "Error", description: "You are not logged in.", variant: "destructive" });
+      return;
+    }
+    try {
+      // Update Firebase Auth display name
+      if (user.fullName !== currentUser.displayName) {
+        await updateProfile(currentUser, { displayName: user.fullName });
+      }
+      // In a real app, you'd also send other user data (phone, address) to your backend/database
+      console.log("Profile updated (Firebase Auth display name and local state):", user);
+      toast({
+        title: "Profile Updated",
+        description: "Your profile information has been saved.",
+      });
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      toast({
+        title: "Update Failed",
+        description: "Could not update your profile. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
 
@@ -121,7 +156,7 @@ export default function ProfilePage() {
               <AvatarImage 
                 src={avatarPreview || "https://placehold.co/150x150.png"} 
                 alt={user.fullName}
-                data-ai-hint={!avatarPreview ? "person user" : undefined} // Only add hint if it's a placeholder
+                data-ai-hint={!avatarPreview ? "person user" : undefined}
               />
               <AvatarFallback>{getInitials(user.fullName)}</AvatarFallback>
             </Avatar>
@@ -131,6 +166,7 @@ export default function ProfilePage() {
               onChange={handleAvatarChange}
               accept="image/png, image/jpeg, image/gif, image/webp"
               style={{ display: 'none' }}
+              disabled={isUploading}
             />
             <Button 
               variant="outline" 
@@ -138,8 +174,9 @@ export default function ProfilePage() {
               className="absolute bottom-0 right-0 rounded-full bg-background hover:bg-muted"
               onClick={handleCameraClick}
               aria-label="Change Avatar"
+              disabled={isUploading}
             >
-              <Camera className="h-5 w-5" />
+              {isUploading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Camera className="h-5 w-5" />}
             </Button>
           </div>
           <CardTitle className="text-2xl text-secondary mt-4">{user.fullName}</CardTitle>
@@ -149,25 +186,26 @@ export default function ProfilePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <Label htmlFor="fullName" className="text-sm font-medium text-muted-foreground">Full Name</Label>
-              <Input id="fullName" value={user.fullName} onChange={handleInputChange} className="mt-1 text-lg" />
+              <Input id="fullName" value={user.fullName} onChange={handleInputChange} className="mt-1 text-lg" disabled={isUploading} />
             </div>
             <div>
               <Label htmlFor="email" className="text-sm font-medium text-muted-foreground">Email Address</Label>
-              <Input id="email" type="email" value={user.email} onChange={handleInputChange} className="mt-1 text-lg" />
+              <Input id="email" type="email" value={user.email} onChange={handleInputChange} className="mt-1 text-lg" disabled={isUploading || !!currentUser?.email} readOnly={!!currentUser?.email} />
             </div>
             <div>
               <Label htmlFor="phone" className="text-sm font-medium text-muted-foreground">Phone Number</Label>
-              <Input id="phone" type="tel" value={user.phone} onChange={handleInputChange} className="mt-1 text-lg" />
+              <Input id="phone" type="tel" value={user.phone} onChange={handleInputChange} className="mt-1 text-lg" disabled={isUploading}/>
             </div>
             <div>
               <Label htmlFor="address" className="text-sm font-medium text-muted-foreground">Mailing Address</Label>
-              <Input id="address" value={user.address} onChange={handleInputChange} className="mt-1 text-lg" />
+              <Input id="address" value={user.address} onChange={handleInputChange} className="mt-1 text-lg" disabled={isUploading}/>
             </div>
           </div>
         </CardContent>
         <CardFooter className="border-t pt-6">
-          <Button className="ml-auto" onClick={handleProfileUpdate}>
-            <Edit3 className="mr-2 h-4 w-4" /> Update Profile
+          <Button className="ml-auto" onClick={handleProfileUpdate} disabled={isUploading}>
+            {isUploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Edit3 className="mr-2 h-4 w-4" />}
+            {isUploading ? "Saving..." : "Update Profile"}
           </Button>
         </CardFooter>
       </Card>
@@ -178,8 +216,8 @@ export default function ProfilePage() {
             <CardDescription>Recent login activity and security events.</CardDescription>
         </CardHeader>
         <CardContent>
-            <p className="text-muted-foreground">Last login: July 28, 2024, 10:30 AM from Anytown, USA (IP: 192.168.1.100)</p>
-            <p className="text-muted-foreground mt-2">Password changed: July 15, 2024</p>
+            <p className="text-muted-foreground">Last login: {currentUser ? format(new Date(currentUser.metadata.lastSignInTime || Date.now()), 'PPpp') : 'N/A'}</p>
+            <p className="text-muted-foreground mt-2">Password changed: {currentUser?.providerData.some(p => p.providerId === 'password') ? 'Enabled' : 'Using social login'}</p>
             <Button variant="link" className="p-0 h-auto mt-2">View full activity log</Button>
         </CardContent>
       </Card>

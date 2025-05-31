@@ -1,6 +1,7 @@
 
 import { initializeApp, getApps, FirebaseApp } from "firebase/app";
 import { getAuth, Auth } from "firebase/auth";
+import { getStorage, FirebaseStorage } from "firebase/storage"; // Added FirebaseStorage import
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -15,6 +16,7 @@ const firebaseConfig = {
 
 let app: FirebaseApp;
 let auth: Auth;
+let storage: FirebaseStorage; // Added storage variable
 
 if (!getApps().length) {
   app = initializeApp(firebaseConfig);
@@ -22,5 +24,6 @@ if (!getApps().length) {
   app = getApps()[0];
 }
 auth = getAuth(app);
+storage = getStorage(app); // Initialize Firebase Storage
 
-export { app, auth };
+export { app, auth, storage }; // Export storage

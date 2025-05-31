@@ -18,10 +18,8 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { ThemeToggleButton } from "@/components/theme-toggle-button";
 import { auth } from "@/lib/firebase/clientApp"; 
 import { signOut, onAuthStateChanged, User } from "firebase/auth"; 
-import React, { useState, useEffect } from "react"; // Ensured React import
+import React, { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
-
-const LOCAL_STORAGE_AVATAR_KEY = 'userUploadedAvatarUrl';
 
 export function DashboardHeader({ pageTitle }: { pageTitle?: string }) {
   const router = useRouter();
@@ -30,33 +28,33 @@ export function DashboardHeader({ pageTitle }: { pageTitle?: string }) {
   const { toast } = useToast();
   const [userDisplayName, setUserDisplayName] = useState("User");
   const [userAvatarUrl, setUserAvatarUrl] = useState<string | null>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser: User | null) => {
-      if (currentUser) {
-        setUserDisplayName(currentUser.displayName?.split(' ')[0] || "User");
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser: User | null) => {
+      setCurrentUser(firebaseUser);
+      if (firebaseUser) {
+        setUserDisplayName(firebaseUser.displayName?.split(' ')[0] || "User");
+        setUserAvatarUrl(firebaseUser.photoURL);
       } else {
         setUserDisplayName("User");
+        setUserAvatarUrl(null);
       }
     });
 
-    // Load avatar from localStorage
-    const loadAvatar = () => {
-      const storedAvatar = localStorage.getItem(LOCAL_STORAGE_AVATAR_KEY);
-      setUserAvatarUrl(storedAvatar);
+    // Custom event listener for avatar updates from profile page
+    const handleAvatarUpdate = (event: Event) => {
+      const customEvent = event as CustomEvent<{ photoURL: string | null }>;
+      if (customEvent.detail?.photoURL) {
+        setUserAvatarUrl(customEvent.detail.photoURL);
+      }
     };
-    loadAvatar();
 
-    // Listen for storage changes to update avatar if changed in another tab/component
-    window.addEventListener('storage', (event) => {
-      if (event.key === LOCAL_STORAGE_AVATAR_KEY) {
-        loadAvatar();
-      }
-    });
+    window.addEventListener('avatarUpdated', handleAvatarUpdate);
     
     return () => {
       unsubscribe();
-      window.removeEventListener('storage', loadAvatar);
+      window.removeEventListener('avatarUpdated', handleAvatarUpdate);
     };
   }, []);
 
@@ -68,7 +66,7 @@ export function DashboardHeader({ pageTitle }: { pageTitle?: string }) {
         title: "Logged Out",
         description: "You have been successfully logged out.",
       });
-      localStorage.removeItem(LOCAL_STORAGE_AVATAR_KEY); // Clear avatar on logout
+      // No need to clear localStorage for avatar, as it's fetched from auth.currentUser.photoURL
       router.push('/login');
     } catch (error) {
       console.error("Logout error:", error);
@@ -94,7 +92,7 @@ export function DashboardHeader({ pageTitle }: { pageTitle?: string }) {
   }
 
   const getInitials = (name: string) => {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase() || 'VC'; // Default to VC if name is empty
+    return name.split(' ').map(n => n[0]).join('').toUpperCase() || 'VC';
   }
 
   return (
@@ -120,6 +118,7 @@ export function DashboardHeader({ pageTitle }: { pageTitle?: string }) {
                   src={userAvatarUrl || "https://placehold.co/100x100.png"} 
                   alt={userDisplayName}
                   data-ai-hint={!userAvatarUrl ? "person user" : undefined}
+                  key={userAvatarUrl} // Add key to force re-render on URL change
                 />
                 <AvatarFallback>{getInitials(userDisplayName)}</AvatarFallback>
               </Avatar>
