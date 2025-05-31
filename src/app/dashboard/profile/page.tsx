@@ -77,23 +77,42 @@ export default function ProfilePage() {
         await updateProfile(currentUser, { photoURL: downloadURL });
         setAvatarPreview(downloadURL);
 
+        // Dispatch a custom event so the header can update if it's listening
         window.dispatchEvent(new CustomEvent('avatarUpdated', { detail: { photoURL: downloadURL } }));
 
         toast({
           title: "Avatar Updated",
           description: "Your profile picture has been successfully uploaded.",
         });
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error uploading avatar:", error);
+        let description = "Could not upload your avatar. Please try again.";
+        switch (error.code) {
+          case 'storage/retry-limit-exceeded':
+            description = "Upload failed: The operation timed out. Please check your internet connection and try again. If the problem persists, ensure Firebase Storage is correctly configured.";
+            break;
+          case 'storage/unauthorized':
+            description = "Upload failed: You are not authorized to upload this file. Please check Firebase Storage security rules.";
+            break;
+          case 'storage/object-not-found': // Should not happen with uploads, but good to cover
+            description = "Upload failed: The file path could not be found. This is an unexpected error.";
+            break;
+          case 'storage/quota-exceeded':
+            description = "Upload failed: Firebase Storage quota has been exceeded. Please check your Firebase plan and usage.";
+            break;
+          case 'storage/canceled':
+            description = "Upload canceled. Please try again if this was unintentional.";
+            break;
+        }
         toast({
           title: "Upload Failed",
-          description: "Could not upload your avatar. Please try again.",
+          description: description,
           variant: "destructive",
         });
       } finally {
         setIsUploading(false);
         if (fileInputRef.current) {
-          fileInputRef.current.value = "";
+          fileInputRef.current.value = ""; // Reset file input
         }
       }
     }
@@ -121,14 +140,17 @@ export default function ProfilePage() {
     try {
       if (user.fullName !== currentUser.displayName) {
         await updateProfile(currentUser, { displayName: user.fullName });
+         // Dispatch a custom event so the header can update if it's listening
+        window.dispatchEvent(new CustomEvent('avatarUpdated', { detail: { photoURL: currentUser.photoURL } }));
       }
       // In a real app, you'd also send other user data (phone, address) to your backend/database
-      console.log("Profile updated (Firebase Auth display name and local state):", user);
+      // For this example, we're only updating displayName in Firebase Auth.
+      // The other fields (phone, address) are only in local state.
       toast({
         title: "Profile Updated",
-        description: "Your profile information has been saved.",
+        description: "Your profile information has been saved (Display Name updated in Firebase).",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error updating profile:", error);
       toast({
         title: "Update Failed",
@@ -153,9 +175,10 @@ export default function ProfilePage() {
           <div className="relative">
             <Avatar className="h-32 w-32 border-4 border-primary shadow-md">
               <AvatarImage 
-                src={avatarPreview || "https://placehold.co/150x150.png"} 
+                src={avatarPreview || undefined} 
                 alt={user.fullName}
                 data-ai-hint={!avatarPreview ? "man travel" : undefined}
+                key={avatarPreview} // Add key to force re-render on src change
               />
               <AvatarFallback>{getInitials(user.fullName)}</AvatarFallback>
             </Avatar>
@@ -175,7 +198,7 @@ export default function ProfilePage() {
               aria-label="Change Avatar"
               disabled={isUploading}
             >
-              {isUploading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Camera className="h-5 w-5" />}
+              {isUploading && !fileInputRef.current?.files?.length ? <Loader2 className="h-5 w-5 animate-spin" /> : <Camera className="h-5 w-5" />}
             </Button>
           </div>
           <CardTitle className="text-2xl text-secondary mt-4">{user.fullName}</CardTitle>
@@ -203,8 +226,8 @@ export default function ProfilePage() {
         </CardContent>
         <CardFooter className="border-t pt-6">
           <Button className="ml-auto" onClick={handleProfileUpdate} disabled={isUploading}>
-            {isUploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Edit3 className="mr-2 h-4 w-4" />}
-            {isUploading ? "Saving..." : "Update Profile"}
+            {isUploading && !fileInputRef.current?.files?.length ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Edit3 className="mr-2 h-4 w-4" />}
+            {isUploading && !fileInputRef.current?.files?.length ? "Saving..." : "Update Profile"}
           </Button>
         </CardFooter>
       </Card>
@@ -223,3 +246,4 @@ export default function ProfilePage() {
     </div>
   );
 }
+
