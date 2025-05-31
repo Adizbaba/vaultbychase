@@ -26,15 +26,15 @@ export default function SettingsPage() {
         <CardContent className="space-y-4">
           <div>
             <Label htmlFor="fullName">Full Name</Label>
-            <Input id="fullName" defaultValue="John Doe" />
+            <Input id="fullName" defaultValue="Raymond Harrison" />
           </div>
           <div>
             <Label htmlFor="email">Email Address</Label>
-            <Input id="email" type="email" defaultValue="john.doe@example.com" />
+            <Input id="email" type="email" defaultValue="kingjay012h@gmail.com" />
           </div>
           <div>
             <Label htmlFor="phone">Phone Number</Label>
-            <Input id="phone" type="tel" defaultValue="+1 (555) 123-4567" />
+            <Input id="phone" type="tel" defaultValue="+1 (430) 346-7585" />
           </div>
           <Button>Update Profile</Button>
         </CardContent>
