@@ -42,13 +42,15 @@ export function DashboardHeader({ pageTitle }: { pageTitle?: string }) {
       }
     });
 
-    // Custom event listener for avatar updates from profile page
     const handleAvatarUpdate = (event: Event) => {
       const customEvent = event as CustomEvent<{ photoURL: string | null }>;
-      if (customEvent.detail?.photoURL) {
+      if (customEvent.detail?.photoURL !== undefined) { // Check if photoURL is explicitly passed
         setUserAvatarUrl(customEvent.detail.photoURL);
+      } else if (auth.currentUser?.photoURL) { // Fallback to current user's photoURL if not in detail
+        setUserAvatarUrl(auth.currentUser.photoURL);
       }
     };
+    
 
     window.addEventListener('avatarUpdated', handleAvatarUpdate);
     
@@ -66,7 +68,6 @@ export function DashboardHeader({ pageTitle }: { pageTitle?: string }) {
         title: "Logged Out",
         description: "You have been successfully logged out.",
       });
-      // No need to clear localStorage for avatar, as it's fetched from auth.currentUser.photoURL
       router.push('/login');
     } catch (error) {
       console.error("Logout error:", error);
@@ -117,8 +118,8 @@ export function DashboardHeader({ pageTitle }: { pageTitle?: string }) {
                 <AvatarImage 
                   src={userAvatarUrl || "https://placehold.co/100x100.png"} 
                   alt={userDisplayName}
-                  data-ai-hint={!userAvatarUrl ? "person user" : undefined}
-                  key={userAvatarUrl} // Add key to force re-render on URL change
+                  data-ai-hint={!userAvatarUrl ? "man travel" : undefined}
+                  key={userAvatarUrl} 
                 />
                 <AvatarFallback>{getInitials(userDisplayName)}</AvatarFallback>
               </Avatar>

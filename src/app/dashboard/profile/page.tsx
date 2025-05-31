@@ -10,18 +10,18 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Camera, Edit3, Loader2 } from "lucide-react";
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
-import { auth, storage } from '@/lib/firebase/clientApp'; // Import storage
+import { auth, storage } from '@/lib/firebase/clientApp'; 
 import { onAuthStateChanged, updateProfile, User } from 'firebase/auth';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 export default function ProfilePage() {
   const { toast } = useToast();
   const [user, setUser] = useState({
-    fullName: "User", // Default, will be updated
-    email: "user@example.com", // Default, will be updated
+    fullName: "User", 
+    email: "user@example.com", 
     phone: "+1 (555) 123-4567",
     address: "123 Main St, Anytown, USA 12345",
-    memberSince: new Date().toISOString(), // Default, will be updated
+    memberSince: new Date().toISOString(), 
   });
 
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
@@ -77,8 +77,6 @@ export default function ProfilePage() {
         await updateProfile(currentUser, { photoURL: downloadURL });
         setAvatarPreview(downloadURL);
 
-        // Dispatch a custom event to notify header about avatar change
-        // This is an alternative to storage event listener if localStorage is removed
         window.dispatchEvent(new CustomEvent('avatarUpdated', { detail: { photoURL: downloadURL } }));
 
         toast({
@@ -94,7 +92,6 @@ export default function ProfilePage() {
         });
       } finally {
         setIsUploading(false);
-         // Reset file input to allow re-uploading the same file if needed
         if (fileInputRef.current) {
           fileInputRef.current.value = "";
         }
@@ -120,8 +117,8 @@ export default function ProfilePage() {
       toast({ title: "Error", description: "You are not logged in.", variant: "destructive" });
       return;
     }
+    setIsUploading(true); // Use same state to disable button
     try {
-      // Update Firebase Auth display name
       if (user.fullName !== currentUser.displayName) {
         await updateProfile(currentUser, { displayName: user.fullName });
       }
@@ -138,6 +135,8 @@ export default function ProfilePage() {
         description: "Could not update your profile. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -156,7 +155,7 @@ export default function ProfilePage() {
               <AvatarImage 
                 src={avatarPreview || "https://placehold.co/150x150.png"} 
                 alt={user.fullName}
-                data-ai-hint={!avatarPreview ? "person user" : undefined}
+                data-ai-hint={!avatarPreview ? "man travel" : undefined}
               />
               <AvatarFallback>{getInitials(user.fullName)}</AvatarFallback>
             </Avatar>
@@ -180,7 +179,7 @@ export default function ProfilePage() {
             </Button>
           </div>
           <CardTitle className="text-2xl text-secondary mt-4">{user.fullName}</CardTitle>
-          <CardDescription>Member since {format(new Date(user.memberSince), 'MMMM yyyy')}</CardDescription>
+          <CardDescription>Member since {user.memberSince ? format(new Date(user.memberSince), 'MMMM yyyy') : 'N/A'}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6 pt-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -216,7 +215,7 @@ export default function ProfilePage() {
             <CardDescription>Recent login activity and security events.</CardDescription>
         </CardHeader>
         <CardContent>
-            <p className="text-muted-foreground">Last login: {currentUser ? format(new Date(currentUser.metadata.lastSignInTime || Date.now()), 'PPpp') : 'N/A'}</p>
+            <p className="text-muted-foreground">Last login: {currentUser?.metadata.lastSignInTime ? format(new Date(currentUser.metadata.lastSignInTime), 'PPpp') : 'N/A'}</p>
             <p className="text-muted-foreground mt-2">Password changed: {currentUser?.providerData.some(p => p.providerId === 'password') ? 'Enabled' : 'Using social login'}</p>
             <Button variant="link" className="p-0 h-auto mt-2">View full activity log</Button>
         </CardContent>
