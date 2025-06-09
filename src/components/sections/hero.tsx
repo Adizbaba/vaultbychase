@@ -79,7 +79,7 @@ export function Hero() {
             <div className="relative">
               <Image 
                 src="https://placehold.co/280x560.png" 
-                alt="VaultbyChase App on iPhone" 
+                alt="/phone.png"
                 width={280} 
                 height={560} 
                 className="rounded-3xl shadow-2xl z-10 transform md:scale-110 transition-transform duration-300 hover:scale-115"
