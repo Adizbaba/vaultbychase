@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from 'next/link';
@@ -12,12 +13,13 @@ import { ThemeToggleButton } from '@/components/theme-toggle-button';
 interface NavItem {
   label: string;
   href: string;
-  isPageLink?: boolean; // True if it links to a different page, false if it's an anchor on the current page
+  isPageLink?: boolean; 
 }
 
 const navItems: NavItem[] = [
   { label: 'Home', href: '/#home', isPageLink: false },
   { label: 'Features', href: '/#features', isPageLink: false },
+  { label: 'Why Us', href: '/#why-vaultbychase', isPageLink: false },
   { label: 'Security', href: '/#security', isPageLink: false },
   { label: 'Support', href: '/support', isPageLink: true },
 ];
@@ -46,25 +48,25 @@ export function Header() {
     setIsMenuOpen(false);
     if (!isPageLink && href.startsWith('/#')) {
       e.preventDefault();
-      const targetId = href.substring(2);
+      const targetId = href.substring(2); // Adjusted to handle /#home correctly
       const targetElement = document.getElementById(targetId);
       if (targetElement) {
         targetElement.scrollIntoView({ behavior: 'smooth' });
-      } else if (href === '/#home') {
+      } else if (href === '/#home' || href === '/') { // Ensure root path also scrolls to top
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     }
   };
 
   if (isDashboard) {
-    return null; // Or a different header for dashboard
+    return null; 
   }
 
   return (
     <header
       className={cn(
         'sticky top-0 z-50 w-full transition-all duration-300',
-        isScrolled ? 'bg-background/95 shadow-md backdrop-blur-sm' : 'bg-background'
+        isScrolled ? 'bg-background/95 shadow-lg backdrop-blur-md' : 'bg-background'
       )}
     >
       <div className="container mx-auto flex h-20 items-center justify-between px-4 md:px-6">
@@ -78,7 +80,7 @@ export function Header() {
               key={item.label}
               href={item.href}
               onClick={(e) => handleNavLinkClick(e, item.href, item.isPageLink)}
-              className="text-sm font-medium text-foreground hover:text-primary transition-colors"
+              className="text-sm font-medium text-foreground hover:text-primary transition-colors relative after:content-[''] after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-[2px] after:bg-primary after:transition-all after:duration-300 hover:after:w-full"
             >
               {item.label}
             </Link>
@@ -87,10 +89,10 @@ export function Header() {
 
         <div className="hidden items-center space-x-3 md:flex">
           <ThemeToggleButton />
-          <Button variant="outline" asChild>
+          <Button variant="outline" size="sm" asChild>
             <Link href="/login">Login</Link>
           </Button>
-          <Button asChild>
+          <Button size="sm" asChild>
             <Link href="/signup">Open Account</Link>
           </Button>
         </div>
@@ -105,14 +107,14 @@ export function Header() {
 
       {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="md:hidden bg-background shadow-lg absolute w-full left-0 top-20">
-          <nav className="flex flex-col space-y-2 p-4">
+        <div className="md:hidden bg-background shadow-xl absolute w-full left-0 top-20 border-t border-border">
+          <nav className="flex flex-col space-y-1 p-4">
             {[...navItems, ...authNavItems].map((item) => (
               <Link
                 key={item.label}
                 href={item.href}
                 onClick={(e) => handleNavLinkClick(e, item.href, item.isPageLink)}
-                className="block py-2 text-foreground hover:text-primary transition-colors text-center rounded-md hover:bg-muted"
+                className="block py-3 px-3 text-foreground hover:text-primary transition-colors text-center rounded-md hover:bg-muted text-base"
               >
                 {item.label}
               </Link>

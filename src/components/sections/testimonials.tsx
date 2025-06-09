@@ -1,9 +1,9 @@
 
 "use client";
 
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Star } from 'lucide-react';
+import { Star, CheckCircle } from 'lucide-react'; // Added CheckCircle for verified
 import { useInViewAnimation } from '@/hooks/useInViewAnimation';
 import { cn } from '@/lib/utils';
 
@@ -15,35 +15,38 @@ interface Testimonial {
   quote: string;
   rating: number;
   aiHint: string;
+  verified?: boolean;
 }
 
 const testimonials: Testimonial[] = [
   {
-    name: 'Sarah L.',
-    role: 'Small Business Owner',
-    avatar: 'https://placehold.co/100x100.png',
-    avatarFallback: 'SL',
-    quote: "VaultbyChase has revolutionized how I manage my business finances. The insights are invaluable!",
+    name: 'Sarah Chen',
+    role: 'Fintech Startup CEO',
+    avatar: 'https://placehold.co/120x120.png',
+    avatarFallback: 'SC',
+    quote: "VaultbyChase has revolutionized how I manage my business finances. The intelligent insights and seamless Zelle® integration are game-changers!",
     rating: 5,
-    aiHint: 'person portrait',
+    aiHint: 'professional portrait woman smiling',
+    verified: true,
   },
   {
-    name: 'John B.',
-    role: 'Freelancer',
-    avatar: 'https://placehold.co/100x100.png',
-    avatarFallback: 'JB',
-    quote: "The mobile app is fantastic and the security features give me peace of mind. Highly recommended.",
+    name: 'David Miller',
+    role: 'Freelance Developer',
+    avatar: 'https://placehold.co/120x120.png',
+    avatarFallback: 'DM',
+    quote: "The mobile app is incredibly intuitive, and the multi-layered security features give me complete peace of mind. Highly recommended for modern banking.",
     rating: 5,
-    aiHint: 'person portrait',
+    aiHint: 'professional portrait man glasses',
   },
   {
-    name: 'Maria G.',
-    role: 'Investor',
-    avatar: 'https://placehold.co/100x100.png',
-    avatarFallback: 'MG',
-    quote: "Transferring funds and managing my investments has never been easier. Top-notch service!",
-    rating: 4,
-    aiHint: 'person portrait',
+    name: 'Linda Rodriguez',
+    role: 'E-commerce Entrepreneur',
+    avatar: 'https://placehold.co/120x120.png',
+    avatarFallback: 'LR',
+    quote: "Managing investments and transferring funds has never been this easy or secure. VaultbyChase offers top-notch service and a truly digital-first experience.",
+    rating: 5,
+    aiHint: 'professional portrait woman confident',
+    verified: true,
   },
 ];
 
@@ -53,55 +56,60 @@ const TestimonialCard = ({ testimonial, index }: { testimonial: Testimonial; ind
     <div
       ref={ref}
       className={cn(
-        'opacity-0 transform translate-y-8 transition-all duration-700 ease-out',
+        'opacity-0 transform translate-y-10 transition-all duration-700 ease-out',
         isInView && 'opacity-100 translate-y-0',
         `delay-${index * 150}`
       )}
     >
-      <Card className="shadow-lg hover:-translate-y-1 hover:shadow-xl transition-all duration-300 bg-background h-full">
-        <CardContent className="pt-6">
-          <div className="flex items-center mb-4">
-            <Avatar className="h-12 w-12 mr-4 border-2 border-primary/20">
-              <AvatarImage src={testimonial.avatar} alt={testimonial.name} data-ai-hint={testimonial.aiHint} />
-              <AvatarFallback>{testimonial.avatarFallback}</AvatarFallback>
-            </Avatar>
-            <div>
-              <p className="font-semibold text-secondary">{testimonial.name}</p>
-              <p className="text-sm text-muted-foreground">{testimonial.role}</p>
-            </div>
-          </div>
-          <div className="flex mb-2">
+      <Card className="shadow-xl hover:shadow-2xl border border-border/20 transition-all duration-300 bg-card h-full flex flex-col rounded-xl overflow-hidden">
+        <CardContent className="pt-8 px-6 pb-6 flex-grow">
+          <div className="flex mb-3">
             {Array(5).fill(0).map((_, i) => (
-              <Star key={i} className={`h-5 w-5 ${i < testimonial.rating ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground/30'}`} />
+              <Star key={i} className={`h-5 w-5 ${i < testimonial.rating ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground/20'}`} />
             ))}
           </div>
-          <blockquote className="text-foreground/90 italic text-sm">
+          <blockquote className="text-foreground/90 italic text-base leading-relaxed mb-6">
             "{testimonial.quote}"
           </blockquote>
         </CardContent>
+        <CardFooter className="bg-muted/50 p-6 border-t border-border/20">
+          <div className="flex items-center">
+            <Avatar className="h-14 w-14 mr-4 border-2 border-primary/30 shadow-sm">
+              <AvatarImage src={testimonial.avatar} alt={testimonial.name} data-ai-hint={testimonial.aiHint} />
+              <AvatarFallback className="text-lg">{testimonial.avatarFallback}</AvatarFallback>
+            </Avatar>
+            <div>
+              <p className="font-semibold text-lg text-secondary">{testimonial.name}</p>
+              <div className="flex items-center">
+                <p className="text-sm text-muted-foreground">{testimonial.role}</p>
+                {testimonial.verified && <CheckCircle className="h-4 w-4 text-green-500 ml-2" />}
+              </div>
+            </div>
+          </div>
+        </CardFooter>
       </Card>
     </div>
   );
 };
 
 export function Testimonials() {
-  const { ref: sectionTitleRef, isInView: sectionTitleInView } = useInViewAnimation({ triggerOnce: true, threshold: 0.5 });
+  const { ref: sectionTitleRef, isInView: sectionTitleInView } = useInViewAnimation({ triggerOnce: true, threshold: 0.4 });
 
   return (
-    <section id="testimonials" className="py-16 md:py-24 bg-muted">
+    <section id="testimonials" className="py-20 md:py-28 bg-muted">
       <div className="container mx-auto px-4 md:px-6">
         <div
           ref={sectionTitleRef}
           className={cn(
-            "text-center mb-12 opacity-0 transform translate-y-8 transition-all duration-700 ease-out",
+            "text-center mb-16 opacity-0 transform translate-y-10 transition-all duration-700 ease-out",
             sectionTitleInView && "opacity-100 translate-y-0"
           )}
         >
-          <h2 className="text-3xl font-bold tracking-tight text-primary sm:text-4xl">
-            Trusted by Thousands
+          <h2 className="text-3xl font-bold tracking-tight text-primary sm:text-4xl md:text-5xl">
+            Trusted by Innovators & Professionals
           </h2>
-          <p className="mt-4 text-lg text-foreground/80 max-w-xl mx-auto">
-            See what our satisfied customers are saying about VaultbyChase.
+          <p className="mt-5 text-lg text-foreground/80 max-w-xl mx-auto">
+            Hear what our satisfied customers are saying about their VaultbyChase experience.
           </p>
         </div>
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
