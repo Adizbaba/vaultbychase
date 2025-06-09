@@ -3,7 +3,7 @@
 # dependencies
 /node_modules
 /.pnp
-.pnp.*
+.pnp.js
 .yarn/*
 !.yarn/patches
 !.yarn/plugins
@@ -38,8 +38,14 @@ yarn-error.log*
 next-env.d.ts
 
 .genkit/*
-.env*
+.env*.local
 
 # firebase
 firebase-debug.log
 firestore-debug.log
+
+# Large media files (temporarily)
+public/videos.mp4
+public/card.jpg
+public/card\ copy.jpg
+public/secured.jpg

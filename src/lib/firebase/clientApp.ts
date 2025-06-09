@@ -1,6 +1,7 @@
-import { initializeApp, getApps, FirebaseApp } from "firebase/app";
-import { getAuth, Auth } from "firebase/auth";
-import { getStorage, FirebaseStorage } from "firebase/storage";
+import { initializeApp, getApps, getApp } from 'firebase/app';
+import { getAuth } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
+import { getStorage } from 'firebase/storage';
 import env from '../env';
 
 // Your web app's Firebase configuration
@@ -25,21 +26,10 @@ console.log('Firebase config loaded:', {
   hasMeasurementId: !!firebaseConfig.measurementId,
 });
 
-let app: FirebaseApp;
-let auth: Auth;
-let storage: FirebaseStorage;
+// Initialize Firebase
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+const auth = getAuth(app);
+const db = getFirestore(app);
+const storage = getStorage(app);
 
-try {
-  if (!getApps().length) {
-    app = initializeApp(firebaseConfig);
-  } else {
-    app = getApps()[0];
-  }
-  auth = getAuth(app);
-  storage = getStorage(app);
-} catch (error) {
-  console.error('Firebase initialization failed:', error);
-  throw error;
-}
-
-export { app, auth, storage };
+export { app, auth, db, storage };
