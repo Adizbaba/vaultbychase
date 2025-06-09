@@ -21,7 +21,7 @@ const keyFeaturesList: FeatureItem[] = [
     icon: ArrowRightLeft,
     title: 'Instant Transfers',
     description: 'Seamlessly send and receive money with Zelle® and internal transfers, lightning fast.',
-    mockupSrc: 'https://placehold.co/180x360.png', // Adjusted size
+    mockupSrc: '/transfer.png', // Adjusted size
     mockupAlt: 'VaultbyChase app transfer screen',
     aiHint: 'app transfer screen modern',
   },
@@ -29,7 +29,7 @@ const keyFeaturesList: FeatureItem[] = [
     icon: CheckCircle,
     title: 'Mobile Deposits',
     description: 'Deposit checks anytime, anywhere using your smartphone camera with ease.',
-    mockupSrc: 'https://placehold.co/180x360.png', // Adjusted size
+    mockupSrc: '/check.png', // Adjusted size
     mockupAlt: 'VaultbyChase app check deposit flow',
     aiHint: 'phone check deposit ui',
   },
@@ -37,7 +37,7 @@ const keyFeaturesList: FeatureItem[] = [
     icon: BarChart2,
     title: 'Smart Insights',
     description: 'Understand spending and reach goals with personalized AI-driven analytics.',
-    mockupSrc: 'https://placehold.co/180x360.png', // Adjusted size
+    mockupSrc: '/smart.png', // Adjusted size
     mockupAlt: 'VaultbyChase app budget/analytics screen',
     aiHint: 'phone budget analytics dark',
   },
@@ -45,7 +45,7 @@ const keyFeaturesList: FeatureItem[] = [
     icon: ShieldCheck,
     title: 'Fortress Security',
     description: 'Multi-layered security, biometric access, and 24/7 fraud monitoring for your peace of mind.',
-    mockupSrc: 'https://placehold.co/180x360.png', // Adjusted size
+    mockupSrc: '/sec.png', // Adjusted size
     mockupAlt: 'VaultbyChase app security feature',
     aiHint: 'phone security login modern',
   },

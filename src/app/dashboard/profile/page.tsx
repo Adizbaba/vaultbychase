@@ -177,7 +177,7 @@ export default function ProfilePage() {
               <AvatarImage 
                 src={avatarPreview || undefined} 
                 alt={user.fullName}
-                data-ai-hint={!avatarPreview ? "man travel" : undefined}
+                data-ai-hint={!avatarPreview ? "Raymond Harrison" : undefined}
                 key={avatarPreview} // Add key to force re-render on src change
               />
               <AvatarFallback>{getInitials(user.fullName)}</AvatarFallback>

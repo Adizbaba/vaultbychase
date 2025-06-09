@@ -65,7 +65,7 @@ export function Security() {
             )}
           >
             <Image
-              src="https://placehold.co/600x500.png"
+              src="/secured.jpg"
               alt="Abstract cybersecurity visual representing data protection and network security"
               data-ai-hint="abstract security network blue"
               layout="fill"

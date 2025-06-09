@@ -22,7 +22,7 @@ const testimonials: Testimonial[] = [
   {
     name: 'Sarah Chen',
     role: 'Fintech Startup CEO',
-    avatar: 'https://placehold.co/120x120.png',
+    avatar: '/test1.png',
     avatarFallback: 'SC',
     quote: "VaultbyChase has revolutionized how I manage my business finances. The intelligent insights and seamless Zelle® integration are game-changers!",
     rating: 5,
@@ -32,7 +32,7 @@ const testimonials: Testimonial[] = [
   {
     name: 'David Miller',
     role: 'Freelance Developer',
-    avatar: 'https://placehold.co/120x120.png',
+    avatar: '/test2.png',
     avatarFallback: 'DM',
     quote: "The mobile app is incredibly intuitive, and the multi-layered security features give me complete peace of mind. Highly recommended for modern banking.",
     rating: 5,
@@ -41,7 +41,7 @@ const testimonials: Testimonial[] = [
   {
     name: 'Linda Rodriguez',
     role: 'E-commerce Entrepreneur',
-    avatar: 'https://placehold.co/120x120.png',
+    avatar: '/test3.png',
     avatarFallback: 'LR',
     quote: "Managing investments and transferring funds has never been this easy or secure. VaultbyChase offers top-notch service and a truly digital-first experience.",
     rating: 5,
