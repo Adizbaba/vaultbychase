@@ -1,12 +1,18 @@
+"use client";
+
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { DashboardSidebarNav } from "@/components/dashboard/dashboard-sidebar-nav";
 import { SidebarProvider } from "@/components/ui/sidebar"; // Using the existing complex sidebar
+import { useSessionTimeout } from "@/hooks/use-session-timeout";
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // Enable session timeout monitoring
+  useSessionTimeout();
+
   return (
     <SidebarProvider defaultOpen={true}>
       <DashboardSidebarNav />

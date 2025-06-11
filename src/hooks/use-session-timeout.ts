@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation'; // Corrected import
+import { useEffect, useState, useCallback, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 
 const INACTIVITY_TIMEOUT = 15 * 60 * 1000; // 15 minutes
@@ -11,45 +11,51 @@ export function useSessionTimeout() {
   const router = useRouter();
   const { toast, dismiss } = useToast();
   const [isActive, setIsActive] = useState(true);
-  let activityTimer: NodeJS.Timeout | null = null;
-  let warningTimer: NodeJS.Timeout | null = null;
-  let toastIdRef = '';
-
+  const activityTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const warningTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const toastIdRef = useRef<string | undefined>(undefined);
 
   const handleLogout = useCallback(() => {
     // Implement actual logout logic (e.g., clear tokens, call API)
     console.log("Session timed out. Logging out...");
-    dismiss(toastIdRef); // Dismiss any active warning toast
+    if (toastIdRef.current) {
+      dismiss(toastIdRef.current);
+    }
     router.push('/login?sessionExpired=true');
-  }, [router, dismiss, toastIdRef]);
+  }, [router, dismiss]);
 
   const resetTimers = useCallback(() => {
-    if (activityTimer) clearTimeout(activityTimer);
-    if (warningTimer) clearTimeout(warningTimer);
-    dismiss(toastIdRef);
+    // Clear existing timers
+    if (activityTimerRef.current) {
+      clearTimeout(activityTimerRef.current);
+      activityTimerRef.current = null;
+    }
+    if (warningTimerRef.current) {
+      clearTimeout(warningTimerRef.current);
+      warningTimerRef.current = null;
+    }
+    if (toastIdRef.current) {
+      dismiss(toastIdRef.current);
+      toastIdRef.current = undefined;
+    }
 
-    activityTimer = setTimeout(handleLogout, INACTIVITY_TIMEOUT);
-    
-    warningTimer = setTimeout(() => {
+    // Set new timers
+    activityTimerRef.current = setTimeout(handleLogout, INACTIVITY_TIMEOUT);
+
+    warningTimerRef.current = setTimeout(() => {
       const { id } = toast({
         title: "Session Expiry Warning",
         description: `You will be logged out due to inactivity in ${((INACTIVITY_TIMEOUT - WARNING_TIMEOUT) / 1000 / 60).toFixed(0)} minute(s). Click to stay logged in.`,
         variant: "destructive",
         duration: INACTIVITY_TIMEOUT - WARNING_TIMEOUT + 5000, // Keep toast slightly longer than remaining time
-        action: (
-          <Button variant="outline" size="sm" onClick={() => {
-            resetTimers();
-            dismiss(id);
-          }}>
-            Stay Logged In
-          </Button>
-        ),
       });
-      if(id) toastIdRef = id;
+      if (id) {
+        toastIdRef.current = id;
+      }
     }, WARNING_TIMEOUT);
 
     setIsActive(true);
-  }, [handleLogout, toast, dismiss, INACTIVITY_TIMEOUT, WARNING_TIMEOUT]);
+  }, [handleLogout, toast, dismiss]);
 
   useEffect(() => {
     const events = ['mousemove', 'mousedown', 'keypress', 'scroll', 'touchstart'];
@@ -64,12 +70,24 @@ export function useSessionTimeout() {
     }
 
     return () => {
-      if (activityTimer) clearTimeout(activityTimer);
-      if (warningTimer) clearTimeout(warningTimer);
+      // Clean up timers
+      if (activityTimerRef.current) {
+        clearTimeout(activityTimerRef.current);
+        activityTimerRef.current = null;
+      }
+      if (warningTimerRef.current) {
+        clearTimeout(warningTimerRef.current);
+        warningTimerRef.current = null;
+      }
+      // Clean up event listeners
       events.forEach(event => window.removeEventListener(event, handleActivity));
-      dismiss(toastIdRef);
+      // Clean up toast
+      if (toastIdRef.current) {
+        dismiss(toastIdRef.current);
+        toastIdRef.current = undefined;
+      }
     };
-  }, [resetTimers, dismiss, toastIdRef]);
+  }, [resetTimers, dismiss]);
 
   return isActive;
 }
