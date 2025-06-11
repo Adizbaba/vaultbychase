@@ -1,33 +1,23 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Bell, LogOut, Settings, UserCircle, Loader2 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { SidebarTrigger } from "@/components/ui/sidebar";
-import { ThemeToggleButton } from "@/components/theme-toggle-button";
-import { auth } from "@/lib/firebase/clientApp"; 
-import { signOut, onAuthStateChanged, User } from "firebase/auth"; 
-import React, { useState, useEffect } from "react";
+import { Bell, Menu, Moon, Sun, User, LogOut } from "lucide-react";
+import { useTheme } from "next-themes";
+import { auth } from "@/lib/firebase/clientApp";
+import { onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
+import { useRouter } from "next/navigation";
+import { signOut } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast";
 
-export function DashboardHeader({ pageTitle }: { pageTitle?: string }) {
-  const router = useRouter();
-  const pathname = usePathname();
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const { toast } = useToast();
-  const [userDisplayName, setUserDisplayName] = useState("User");
+export function DashboardHeader() {
+  const { theme, setTheme } = useTheme();
   const [userAvatarUrl, setUserAvatarUrl] = useState<string | null>(null);
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [userName, setUserName] = useState<string>("User");
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const router = useRouter();
+  const { toast } = useToast();
 
   useEffect(() => {
     if (!auth) {
@@ -35,131 +25,93 @@ export function DashboardHeader({ pageTitle }: { pageTitle?: string }) {
       return;
     }
 
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser: User | null) => {
-      setCurrentUser(firebaseUser);
-      if (firebaseUser) {
-        setUserDisplayName(firebaseUser.displayName?.split(' ')[0] || "User");
-        setUserAvatarUrl(firebaseUser.photoURL);
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setUserAvatarUrl(user.photoURL);
+        setUserName(user.displayName || "User");
       } else {
-        setUserDisplayName("User");
         setUserAvatarUrl(null);
+        setUserName("User");
       }
     });
 
-    const handleAvatarUpdate = (event: Event) => {
-      const customEvent = event as CustomEvent<{ photoURL: string | null }>;
+    // Listen for avatar updates from profile page
+    const handleAvatarUpdate = (customEvent: CustomEvent<{ photoURL: string }>) => {
       if (customEvent.detail?.photoURL !== undefined) {
         setUserAvatarUrl(customEvent.detail.photoURL);
-      } else if (auth.currentUser?.photoURL) {
+      } else if (auth?.currentUser?.photoURL) {
         setUserAvatarUrl(auth.currentUser.photoURL);
       }
     };
-    
 
-    window.addEventListener('avatarUpdated', handleAvatarUpdate);
-    
+    window.addEventListener('avatarUpdated', handleAvatarUpdate as EventListener);
+
     return () => {
       unsubscribe();
-      window.removeEventListener('avatarUpdated', handleAvatarUpdate);
+      window.removeEventListener('avatarUpdated', handleAvatarUpdate as EventListener);
     };
   }, []);
 
-  const handleLogout = async () => {
-    setIsLoggingOut(true);
+  const handleSignOut = async () => {
+    if (!auth) {
+      console.error('Firebase auth is not initialized');
+      return;
+    }
+
     try {
       await signOut(auth);
+      router.push('/');
       toast({
-        title: "Logged Out",
-        description: "You have been successfully logged out.",
+        title: "Signed out successfully",
+        description: "You have been signed out of your account.",
       });
-      router.push('/login');
     } catch (error) {
-      console.error("Logout error:", error);
+      console.error('Error signing out:', error);
       toast({
-        title: "Logout Failed",
-        description: "Could not log you out. Please try again.",
+        title: "Error signing out",
+        description: "There was a problem signing out. Please try again.",
         variant: "destructive",
       });
-    } finally {
-      setIsLoggingOut(false);
     }
   };
-  
-  let title = pageTitle;
-  if (!title) {
-    const pathSegments = pathname.split('/').filter(Boolean);
-    if (pathSegments.length > 1) {
-      title = pathSegments[1].charAt(0).toUpperCase() + pathSegments[1].slice(1);
-      if (title === "Page") title = "Overview"; 
-    } else {
-      title = "Dashboard";
-    }
-  }
+
+  const toggleTheme = () => {
+    setTheme(theme === "dark" ? "light" : "dark");
+  };
 
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase() || 'VC';
-  }
+  };
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6 justify-between">
-      <div className="flex items-center gap-4">
-        <div className="md:hidden">
-         <SidebarTrigger />
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container flex h-16 items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+            <Menu className="h-5 w-5" />
+          </Button>
+          <div className="flex items-center gap-2">
+            <Avatar className="h-8 w-8">
+              <AvatarImage src={userAvatarUrl || undefined} alt={userName} />
+              <AvatarFallback>{getInitials(userName)}</AvatarFallback>
+            </Avatar>
+            <div className="hidden md:block">
+              <p className="text-sm font-medium">{userName}</p>
+            </div>
+          </div>
         </div>
-        <h1 className="text-xl font-semibold text-foreground hidden md:block">{title}</h1>
-      </div>
-      
-      <div className="flex items-center gap-2 md:gap-4">
-        <ThemeToggleButton />
-        <Button variant="ghost" size="icon" className="rounded-full">
-          <Bell className="h-5 w-5" />
-          <span className="sr-only">Notifications</span>
-        </Button>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative h-10 w-10 rounded-full" disabled={isLoggingOut}>
-              <Avatar className="h-10 w-10">
-                <AvatarImage 
-                  src={userAvatarUrl || "/profile.png"} 
-                  alt={userDisplayName}
-                  data-ai-hint={!userAvatarUrl ? "man travel" : undefined}
-                  key={userAvatarUrl} 
-                />
-                <AvatarFallback>{getInitials(userDisplayName)}</AvatarFallback>
-              </Avatar>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>My Account</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem asChild disabled={isLoggingOut}>
-              <Link href="/dashboard/profile">
-                <UserCircle className="mr-2 h-4 w-4" />
-                Profile
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild disabled={isLoggingOut}>
-              <Link href="/dashboard/settings">
-                <Settings className="mr-2 h-4 w-4" />
-                Settings
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive focus:bg-destructive/10" disabled={isLoggingOut}>
-              {isLoggingOut ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Logging Out...
-                </>
-              ) : (
-                <>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Log Out
-                </>
-              )}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={toggleTheme}>
+            {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+          </Button>
+          <Button variant="ghost" size="icon">
+            <Bell className="h-5 w-5" />
+          </Button>
+          <Button variant="ghost" size="icon" onClick={handleSignOut}>
+            <LogOut className="h-5 w-5" />
+          </Button>
+        </div>
       </div>
     </header>
   );
