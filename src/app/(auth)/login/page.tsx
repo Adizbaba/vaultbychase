@@ -12,6 +12,8 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { auth } from "@/lib/firebase/clientApp";
+import { signInWithEmailAndPassword, onAuthStateChanged, User } from "firebase/auth";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -26,6 +28,25 @@ export default function LoginPage() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [checkingAuthState, setCheckingAuthState] = useState(true);
+
+  useEffect(() => {
+    if (!auth) {
+      console.error('Firebase auth is not initialized');
+      setCheckingAuthState(false);
+      return;
+    }
+
+    const unsubscribe = onAuthStateChanged(auth, (user: User | null) => {
+      if (user) {
+        router.replace('/dashboard');
+      } else {
+        setCheckingAuthState(false);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [router]);
 
   useEffect(() => {
     // Check for session expired parameter
@@ -47,15 +68,58 @@ export default function LoginPage() {
   });
 
   const onSubmit = async (data: LoginFormValues) => {
-    setIsLoading(true);
-    setFormError(null);
-    
-    // Simulate login
-    setTimeout(() => {
-      router.push('/dashboard');
+    if (!auth) {
+      setFormError('Authentication service is not available');
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      setFormError(null);
+      
+      await signInWithEmailAndPassword(auth, data.email, data.password);
+      // onAuthStateChanged will handle the redirect to dashboard
+    } catch (error: any) {
+      let errorMessage = "Failed to sign in. Please try again.";
+      switch (error.code) {
+        case 'auth/invalid-email':
+          errorMessage = "Invalid email address.";
+          break;
+        case 'auth/user-disabled':
+          errorMessage = "This account has been disabled.";
+          break;
+        case 'auth/user-not-found':
+          errorMessage = "No account found with this email.";
+          break;
+        case 'auth/wrong-password':
+          errorMessage = "Incorrect password.";
+          break;
+        case 'auth/too-many-requests':
+          errorMessage = "Too many failed attempts. Please try again later.";
+          break;
+        case 'auth/network-request-failed':
+          errorMessage = "Network error. Please check your connection.";
+          break;
+      }
+      setFormError(errorMessage);
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
+
+  if (checkingAuthState) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        <p className="mt-4 text-muted-foreground">Loading...</p>
+      </div>
+    );
+  }
 
   return (
     <Card className="border-none shadow-none">
