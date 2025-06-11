@@ -14,7 +14,10 @@ export function Logo({ className, ...props }: LogoProps) {
   return (
     <div className={cn("relative w-[150px] h-[36px]", className)} {...props}>
       <Image
-        src={theme === "dark" ? "/darkmode.png" : "/lightmode.png"}
+        src={theme === "dark" 
+          ? "https://res.cloudinary.com/dse63uv5p/image/upload/v1749602189/darkmode_ujcvqe.png"
+          : "https://res.cloudinary.com/dse63uv5p/image/upload/v1749602189/lightmode_u0v8oq.png"
+        }
         alt="VaultbyChase Logo"
         fill
         className="object-contain"
