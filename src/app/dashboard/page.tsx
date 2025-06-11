@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from 'react';
@@ -13,6 +12,7 @@ import { onAuthStateChanged, User } from 'firebase/auth';
 import type { AccountDetail, CheckingAccountDetails, SavingsAccountDetails, InvestmentAccountDetails, CreditCardAccountDetails } from "@/types/accounts";
 import { AccountDetailsModal } from "@/components/dashboard/account-details-modal";
 import { addDays, subDays, formatISO, format } from 'date-fns';
+import { useRouter } from 'next/navigation';
 
 const generateRandomFourDigitString = (): string => {
   return Math.floor(1000 + Math.random() * 9000).toString();
@@ -118,26 +118,30 @@ const quickActions = [
   { label: "Manage Alerts", href: "/dashboard/settings/alerts", icon: Settings },
 ];
 
-export default function DashboardOverviewPage() {
+export default function DashboardPage() {
   const [userName, setUserName] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState<AccountDetail | null>(null);
   const [displayedAccounts, setDisplayedAccounts] = useState<AccountDetail[]>(initialMockAccounts);
+  const router = useRouter();
 
   useEffect(() => {
+    if (!auth) {
+      console.error('Firebase auth is not initialized');
+      return;
+    }
+
     const unsubscribe = onAuthStateChanged(auth, (user: User | null) => {
       if (user) {
         const displayName = user.displayName;
         if (displayName) {
-          setUserName(displayName.split(' ')[0]); 
-        } else {
-          setUserName("User"); 
+          setUserName(displayName);
         }
+        setIsLoading(false);
       } else {
-        setUserName("User"); 
+        router.push('/login');
       }
-      setIsLoading(false);
     });
 
     // Randomize account suffixes on client-side
@@ -149,7 +153,7 @@ export default function DashboardOverviewPage() {
     );
 
     return () => unsubscribe();
-  }, []);
+  }, [router]);
 
   const handleViewDetails = (account: AccountDetail) => {
     setSelectedAccount(account);

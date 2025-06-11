@@ -30,6 +30,11 @@ export function DashboardHeader({ pageTitle }: { pageTitle?: string }) {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
 
   useEffect(() => {
+    if (!auth) {
+      console.error('Firebase auth is not initialized');
+      return;
+    }
+
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser: User | null) => {
       setCurrentUser(firebaseUser);
       if (firebaseUser) {
@@ -43,9 +48,9 @@ export function DashboardHeader({ pageTitle }: { pageTitle?: string }) {
 
     const handleAvatarUpdate = (event: Event) => {
       const customEvent = event as CustomEvent<{ photoURL: string | null }>;
-      if (customEvent.detail?.photoURL !== undefined) { // Check if photoURL is explicitly passed
+      if (customEvent.detail?.photoURL !== undefined) {
         setUserAvatarUrl(customEvent.detail.photoURL);
-      } else if (auth.currentUser?.photoURL) { // Fallback to current user's photoURL if not in detail
+      } else if (auth.currentUser?.photoURL) {
         setUserAvatarUrl(auth.currentUser.photoURL);
       }
     };
