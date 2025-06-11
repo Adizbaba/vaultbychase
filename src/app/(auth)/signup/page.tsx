@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -11,7 +10,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useRouter } from 'next/navigation';
-import { auth } from '@/lib/firebase/clientApp'; // Import Firebase auth instance
+import { auth } from '@/lib/firebase';
 import { createUserWithEmailAndPassword, updateProfile, User, onAuthStateChanged } from 'firebase/auth';
 import { Loader2 } from 'lucide-react';
 
@@ -44,6 +43,8 @@ export default function SignupPage() {
   });
 
   useEffect(() => {
+    if (!auth) return;
+    
     const unsubscribe = onAuthStateChanged(auth, (user: User | null) => {
       if (user) {
         // If user is already signed in (e.g., just signed up and auto-logged in, or visited signup page while logged in)
@@ -52,12 +53,19 @@ export default function SignupPage() {
         setCheckingAuthState(false);
       }
     });
+
     return () => unsubscribe();
   }, [router]);
 
   const onSubmit = async (data: SignupFormValues) => {
+    if (!auth) {
+      setFormError('Authentication service is not available');
+      return;
+    }
+
     setIsLoading(true);
     setFormError(null);
+
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
       // User created and signed in.

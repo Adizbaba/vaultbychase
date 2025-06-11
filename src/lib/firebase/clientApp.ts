@@ -19,6 +19,12 @@ const app = getApps().length > 0 ? getApp() :
     ? initializeApp(firebaseConfig)
     : null;
 
+// Export null if Firebase is not properly configured
 export const auth = app ? getAuth(app) : null;
 export const db = app ? getFirestore(app) : null;
 export const storage = app ? getStorage(app) : null;
+
+// Log initialization status
+if (!app) {
+  console.warn('Firebase not initialized. Please check your environment variables.');
+}
