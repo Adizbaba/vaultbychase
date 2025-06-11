@@ -1,11 +1,11 @@
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { Hero } from '@/components/sections/hero';
-import { KeyFeatures } from '@/components/sections/features'; // Renamed for clarity, points to updated features.tsx
+import { KeyFeatures } from '@/components/sections/features';
 import { WhyVaultbyChase } from '@/components/sections/why-vaultbychase';
 import { Testimonials } from '@/components/sections/testimonials';
 import { CallToAction } from '@/components/sections/call-to-action';
-import { Security } from '@/components/sections/security';
+import { SecuritySection } from '@/components/sections/security';
 
 export default function HomePage() {
   return (
@@ -15,7 +15,7 @@ export default function HomePage() {
         <Hero />
         <KeyFeatures />
         <WhyVaultbyChase />
-        <Security />
+        <SecuritySection />
         <Testimonials />
         <CallToAction />
       </main>
