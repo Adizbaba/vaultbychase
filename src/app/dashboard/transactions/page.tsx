@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
@@ -7,16 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { subDays, format } from "date-fns";
-
-interface Transaction {
-  id: string;
-  accountId: string; 
-  date: string;
-  description: string;
-  amount: number;
-  type: "debit" | "credit" | "transfer" | "transfer_in" | "transfer_out" | "payment" | "fee" | "interest" | "dividend" | "investment_buy" | "investment_sell"; // Extended types
-  status: "completed" | "pending" | "failed" | "cancelled"; // Extended statuses
-}
+import type { Transaction } from "@/types/accounts";
 
 const generateRandomFourDigitString = (): string => {
   return Math.floor(1000 + Math.random() * 9000).toString();
@@ -47,7 +37,7 @@ const generateMockTransactions = (): Transaction[] => {
     "Childcare Expenses", "Investment Purchase", "Investment Sale", "Parking Fee", "Public Transport", "Taxi Ride"
   ];
   const accountIds = initialFilterableAccounts.filter(acc => acc.id !== "all").map(acc => acc.id);
-  const types: Array<Transaction["type"]> = ["debit", "credit", "transfer", "payment", "fee", "interest", "dividend", "investment_buy", "investment_sell"];
+  const types: Array<Transaction["type"]> = ["debit", "credit", "transfer_out", "transfer_in", "payment", "fee", "interest", "dividend", "investment_buy", "investment_sell"];
   const statuses: Array<Transaction["status"]> = ["completed", "pending", "failed", "cancelled"];
   const today = new Date();
 
@@ -55,7 +45,7 @@ const generateMockTransactions = (): Transaction[] => {
     const accountId = accountIds[Math.floor(Math.random() * accountIds.length)];
     const type = types[Math.floor(Math.random() * types.length)];
     let amount = parseFloat((Math.random() * (type === "credit" || type === "interest" || type === "dividend" || type === "investment_sell" ? 3000 : 500) + 5).toFixed(2));
-    if (type === "debit" || type === "transfer_out" || type === "payment" || type === "fee" || type === "investment_buy" || (type === "transfer" && Math.random() < 0.5) ) {
+    if (type === "debit" || type === "transfer_out" || type === "payment" || type === "fee" || type === "investment_buy") {
       amount = -amount;
     }
 
