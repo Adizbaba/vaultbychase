@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from 'next/link';
@@ -71,7 +70,7 @@ export function Header() {
     >
       <div className="container mx-auto flex h-20 items-center justify-between px-4 md:px-6">
         <Link href="/" aria-label="VaultbyChase Home" onClick={(e) => handleNavLinkClick(e, '/#home', false)}>
-          <Logo className="h-9 w-auto" />
+          <Logo />
         </Link>
 
         <nav className="hidden items-center space-x-6 md:flex">

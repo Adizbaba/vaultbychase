@@ -1,26 +1,26 @@
-import type { SVGProps } from 'react';
+"use client";
 
-export function Logo(props: SVGProps<SVGSVGElement>) {
+import Image from "next/image";
+import { useTheme } from "next-themes";
+import { cn } from "@/lib/utils";
+
+interface LogoProps extends React.HTMLAttributes<HTMLDivElement> {
+  className?: string;
+}
+
+export function Logo({ className, ...props }: LogoProps) {
+  const { theme } = useTheme();
+
   return (
-    <svg
-      width="150"
-      height="36"
-      viewBox="0 0 150 36"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-label="VaultbyChase Logo"
-      {...props}
-    >
-      <text
-        x="0"
-        y="26"
-        fontFamily="var(--font-geist-sans), Arial, sans-serif"
-        fontSize="24"
-        fontWeight="bold"
-        fill="hsl(var(--primary))" // Use primary color from theme
-      >
-        VaultbyChase
-      </text>
-    </svg>
+    <div className={cn("relative w-[150px] h-[36px]", className)} {...props}>
+      <Image
+        src={theme === "dark" ? "/darkmode.png" : "/lightmode.png"}
+        alt="VaultbyChase Logo"
+        fill
+        className="object-contain"
+        priority
+        sizes="(max-width: 768px) 120px, 150px"
+      />
+    </div>
   );
 }
