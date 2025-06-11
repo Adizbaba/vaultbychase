@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { auth, storage } from '@/lib/firebase/clientApp'; 
 import { onAuthStateChanged, updateProfile, User } from 'firebase/auth';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { FirebaseStorage } from 'firebase/storage';
 
 export default function ProfilePage() {
   const { toast } = useToast();
@@ -54,70 +55,80 @@ export default function ProfilePage() {
 
   const handleAvatarChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file && currentUser) {
-      if (file.size > 2 * 1024 * 1024) { // Max 2MB
-        toast({
-          title: "Image Too Large",
-          description: "Please select an image smaller than 2MB.",
-          variant: "destructive",
-        });
-        return;
+    if (!file || !currentUser) return;
+
+    if (!storage) {
+      toast({
+        title: "Storage Not Available",
+        description: "File storage service is not available. Please try again later.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) { // Max 2MB
+      toast({
+        title: "Image Too Large",
+        description: "Please select an image smaller than 2MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!['image/jpeg', 'image/png', 'image/gif', 'image/webp'].includes(file.type)) {
+      toast({
+        title: "Invalid File Type",
+        description: "Please select a JPG, PNG, GIF, or WEBP image.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const imageRef = storageRef(storage as FirebaseStorage, `avatars/${currentUser.uid}/${file.name}`);
+      await uploadBytes(imageRef, file);
+      const downloadURL = await getDownloadURL(imageRef);
+      
+      await updateProfile(currentUser, { photoURL: downloadURL });
+      setAvatarPreview(downloadURL);
+
+      // Dispatch a custom event so the header can update if it's listening
+      window.dispatchEvent(new CustomEvent('avatarUpdated', { detail: { photoURL: downloadURL } }));
+
+      toast({
+        title: "Avatar Updated",
+        description: "Your profile picture has been successfully uploaded.",
+      });
+    } catch (error: any) {
+      console.error("Error uploading avatar:", error);
+      let description = "Could not upload your avatar. Please try again.";
+      switch (error.code) {
+        case 'storage/retry-limit-exceeded':
+          description = "Upload failed: The operation timed out. Please check your internet connection and try again. If the problem persists, ensure Firebase Storage is correctly configured.";
+          break;
+        case 'storage/unauthorized':
+          description = "Upload failed: You are not authorized to upload this file. Please check Firebase Storage security rules.";
+          break;
+        case 'storage/object-not-found':
+          description = "Upload failed: The file path could not be found. This is an unexpected error.";
+          break;
+        case 'storage/quota-exceeded':
+          description = "Upload failed: Firebase Storage quota has been exceeded. Please check your Firebase plan and usage.";
+          break;
+        case 'storage/canceled':
+          description = "Upload canceled. Please try again if this was unintentional.";
+          break;
       }
-      if (!['image/jpeg', 'image/png', 'image/gif', 'image/webp'].includes(file.type)) {
-        toast({
-          title: "Invalid File Type",
-          description: "Please select a JPG, PNG, GIF, or WEBP image.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      setIsUploading(true);
-      try {
-        const imageRef = storageRef(storage, `avatars/${currentUser.uid}/${file.name}`);
-        await uploadBytes(imageRef, file);
-        const downloadURL = await getDownloadURL(imageRef);
-        
-        await updateProfile(currentUser, { photoURL: downloadURL });
-        setAvatarPreview(downloadURL);
-
-        // Dispatch a custom event so the header can update if it's listening
-        window.dispatchEvent(new CustomEvent('avatarUpdated', { detail: { photoURL: downloadURL } }));
-
-        toast({
-          title: "Avatar Updated",
-          description: "Your profile picture has been successfully uploaded.",
-        });
-      } catch (error: any) {
-        console.error("Error uploading avatar:", error);
-        let description = "Could not upload your avatar. Please try again.";
-        switch (error.code) {
-          case 'storage/retry-limit-exceeded':
-            description = "Upload failed: The operation timed out. Please check your internet connection and try again. If the problem persists, ensure Firebase Storage is correctly configured.";
-            break;
-          case 'storage/unauthorized':
-            description = "Upload failed: You are not authorized to upload this file. Please check Firebase Storage security rules.";
-            break;
-          case 'storage/object-not-found': // Should not happen with uploads, but good to cover
-            description = "Upload failed: The file path could not be found. This is an unexpected error.";
-            break;
-          case 'storage/quota-exceeded':
-            description = "Upload failed: Firebase Storage quota has been exceeded. Please check your Firebase plan and usage.";
-            break;
-          case 'storage/canceled':
-            description = "Upload canceled. Please try again if this was unintentional.";
-            break;
-        }
-        toast({
-          title: "Upload Failed",
-          description: description,
-          variant: "destructive",
-        });
-      } finally {
-        setIsUploading(false);
-        if (fileInputRef.current) {
-          fileInputRef.current.value = ""; // Reset file input
-        }
+      toast({
+        title: "Upload Failed",
+        description: description,
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ""; // Reset file input
       }
     }
   };
