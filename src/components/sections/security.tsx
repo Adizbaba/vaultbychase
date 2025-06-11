@@ -1,4 +1,3 @@
-
 "use client";
 
 import Image from 'next/image';
@@ -65,12 +64,11 @@ export function Security() {
             )}
           >
             <Image
-              src="/secured.jpg"
+              src="https://res.cloudinary.com/dse63uv5p/image/upload/v1749602193/secured_gf1dzj.jpg"
               alt="Abstract cybersecurity visual representing data protection and network security"
               data-ai-hint="abstract security network blue"
-              layout="fill"
-              objectFit="cover"
-              className="transform hover:scale-105 transition-transform duration-500 ease-in-out"
+              fill
+              className="object-cover transform hover:scale-105 transition-transform duration-500 ease-in-out"
             />
             <div className="absolute inset-0 bg-gradient-to-tr from-primary/30 via-transparent to-secondary/20 opacity-70"></div>
             {/* Placeholder for Lottie Animation: Could be a looping animation of a shield or network graph */}

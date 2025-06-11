@@ -92,7 +92,7 @@ export function Hero() {
             <div className="mt-8 flex justify-center lg:justify-start space-x-4 opacity-80">
               <Link href="#" aria-label="Download on the App Store" className="group">
                 <Image 
-                  src="https://placehold.co/135x40.png" 
+                  src="https://res.cloudinary.com/dse63uv5p/image/upload/v1749602189/App_Store_c47thz.png" 
                   alt="App Store" 
                   width={135} 
                   height={40} 
@@ -102,7 +102,7 @@ export function Hero() {
               </Link>
               <Link href="#" aria-label="Get it on Google Play" className="group">
                 <Image 
-                  src="https://placehold.co/135x40.png" 
+                  src="https://res.cloudinary.com/dse63uv5p/image/upload/v1749602189/Google_Play_o4ehxz.png" 
                   alt="Google Play" 
                   width={135} 
                   height={40} 
@@ -122,7 +122,7 @@ export function Hero() {
             <div className="relative group">
               <div className="absolute -inset-0.5 bg-gradient-to-r from-primary via-secondary to-primary rounded-[2.5rem] blur opacity-30 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-gradient"></div>
               <Image 
-                src="/card copy.jpg" 
+                src="https://res.cloudinary.com/dse63uv5p/image/upload/v1749602190/card_copy_dwu31u.jpg" 
                 alt="VaultbyChase app on a modern smartphone"
                 width={320} 
                 height={640} 

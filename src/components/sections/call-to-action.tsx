@@ -61,10 +61,10 @@ export function CallToAction() {
 
             <div className="mt-8 flex justify-center lg:justify-start space-x-6">
               <Link href="#" aria-label="Download on the App Store">
-                <Image src="https://placehold.co/180x60.png" alt="App Store badge" width={180} height={60} className="rounded-lg hover:opacity-90 hover:scale-105 transform transition-all duration-300"/>
+                <Image src="/App Store.png" alt="App Store badge" width={180} height={60} className="rounded-lg hover:opacity-90 hover:scale-105 transform transition-all duration-300"/>
               </Link>
               <Link href="#" aria-label="Get it on Google Play">
-                <Image src="https://placehold.co/180x60.png" alt="Google Play badge" width={180} height={60} className="rounded-lg hover:opacity-90 hover:scale-105 transform transition-all duration-300"/>
+                <Image src="/Google Play.png" alt="Google Play badge" width={180} height={60} className="rounded-lg hover:opacity-90 hover:scale-105 transform transition-all duration-300"/>
               </Link>
             </div>
           </div>
@@ -85,7 +85,7 @@ export function CallToAction() {
                 playsInline
                 className="w-full h-full object-cover"
               >
-                <source src="/videos.mp4" type="video/mp4" />
+                <source src="https://res.cloudinary.com/dse63uv5p/video/upload/v1749602200/videos_o188fx.mp4" type="video/mp4" />
                 Your browser does not support the video tag.
               </video>
               {/* Decorative elements */}
